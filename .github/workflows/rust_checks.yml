@@ -2,8 +2,6 @@ name: Format, Clippy and Tests
 
 on:
   push:
-    paths:
-      - ftd-backend
     branches:
       - development
       - main
