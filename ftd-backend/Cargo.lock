@@ -874,7 +874,6 @@ dependencies = [
  "anyhow",
  "async-trait",
  "config",
- "env_logger",
  "ftd-config",
  "ftd-logging",
  "ftd-metrics",
@@ -884,8 +883,6 @@ dependencies = [
  "lazy_static",
  "log",
  "once_cell",
- "serde",
- "thiserror",
  "tokio",
 ]
 

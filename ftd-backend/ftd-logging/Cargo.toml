@@ -2,7 +2,7 @@
 name = "ftd-logging"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.67.0"
+rust-version = "1.77.2"
 authors = ["kukabi <kutsal@helikon.io>"]
 
 [dependencies]

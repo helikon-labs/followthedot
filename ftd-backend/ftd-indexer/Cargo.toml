@@ -2,14 +2,13 @@
 name = "ftd-indexer"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.67.0"
+rust-version = "1.77.2"
 authors = ["kukabi <kutsal@helikon.io>"]
 
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 config = { workspace = true }
-env_logger = { workspace = true }
 ftd-config = { path = "../ftd-config" }
 ftd-logging = { path = "../ftd-logging" }
 ftd-metrics = { path = "../ftd-metrics" }
@@ -19,9 +18,4 @@ ftd-sidecar-client = { path = "../ftd-sidecar-client" }
 lazy_static = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
-
-serde = { workspace = true, features = ["derive"] }
-
-
-thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
