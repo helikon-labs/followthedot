@@ -1,0 +1,12 @@
+[package]
+name = "ftd-persistence"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.67.0"
+
+[dependencies]
+anyhow = { workspace = true }
+chrono = { workspace = true }
+ftd-config = { path = "../ftd-config" }
+log = { workspace = true }
+sqlx = { workspace = true, features = ["postgres", "runtime-tokio-rustls", "chrono"] }

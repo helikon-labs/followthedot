@@ -1,0 +1,3 @@
+[postgres]
+port = 5432
+pool_max_connections = 64

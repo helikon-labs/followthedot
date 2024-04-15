@@ -1,0 +1,6 @@
+[substrate]
+chain = "polkadot"
+chain_display = "Polkadot"
+sidecar_url = "https://sidecar.helikon.io/polkadot"
+token_ticker = "DOT"
+token_decimals = 12

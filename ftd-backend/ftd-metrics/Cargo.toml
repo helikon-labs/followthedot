@@ -1,0 +1,15 @@
+[package]
+name = "ftd-metrics"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.67.0"
+authors = ["kukabi <kutsal@helikon.io>"]
+
+[dependencies]
+env_logger = { workspace = true }
+log = { workspace = true }
+once_cell = { workspace = true }
+prometheus = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["time", "rt-multi-thread"] }
+warp = { version = "0.3", default-features = false }

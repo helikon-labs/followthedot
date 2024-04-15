@@ -1,0 +1,6 @@
+[substrate]
+chain = "kusama"
+chain_display = "Kusama"
+sidecar_url = "https://sidecar.helikon.io/kusama"
+token_ticker = "KSM"
+token_decimals = 12

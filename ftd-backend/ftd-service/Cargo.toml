@@ -1,0 +1,17 @@
+[package]
+name = "ftd-service"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.67.0"
+
+[dependencies]
+actix-web = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+log = { workspace = true }
+serde_json = { workspace = true }
+ftd-config = { path = "../ftd-config" }
+ftd-logging = { path = "../ftd-logging" }
+ftd-metrics = { path = "../ftd-metrics" }
+ftd-types = { path = "../ftd-types" }
+tokio = { workspace = true, features = ["full"] }
