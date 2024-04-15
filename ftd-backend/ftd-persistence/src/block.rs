@@ -15,13 +15,24 @@ impl PostgreSQLStorage {
     }
 
     pub async fn get_max_block_number(&self) -> anyhow::Result<u64> {
-        let processed_block_height: (i64,) = sqlx::query_as(
+        let max_block_number: (i64,) = sqlx::query_as(
             r#"
             SELECT COALESCE(MAX(number), 0) from ftd_block
             "#,
         )
         .fetch_one(&self.connection_pool)
         .await?;
-        Ok(processed_block_height.0 as u64)
+        Ok(max_block_number.0 as u64)
+    }
+
+    pub async fn get_min_block_number(&self) -> anyhow::Result<u64> {
+        let min_block_number: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COALESCE(MIN(number), 0) from ftd_block
+            "#,
+        )
+        .fetch_one(&self.connection_pool)
+        .await?;
+        Ok(min_block_number.0 as u64)
     }
 }
