@@ -941,6 +941,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "ftd-config",
+ "ftd-types",
  "log",
  "reqwest",
  "serde_json",
@@ -951,6 +952,7 @@ name = "ftd-types"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "thiserror",
 ]
 
 [[package]]

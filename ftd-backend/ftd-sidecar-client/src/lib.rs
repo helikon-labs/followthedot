@@ -1,8 +1,11 @@
 use ftd_config::Config;
 use std::time::Duration;
 
+mod block;
+
 /// The client.
 pub struct SidecarClient {
+    base_url: String,
     http_client: reqwest::Client,
 }
 
@@ -19,7 +22,10 @@ impl SidecarClient {
             .build()
             .unwrap();
         log::info!("Sidecar client constructed.");
-        Ok(Self { http_client })
+        Ok(Self {
+            base_url: config.substrate.sidecar_url.clone(),
+            http_client,
+        })
     }
 
     pub async fn do_stuff(&self) -> anyhow::Result<()> {

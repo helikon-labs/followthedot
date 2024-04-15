@@ -16,8 +16,6 @@ lazy_static! {
 #[derive(Default)]
 pub struct Indexer;
 
-impl Indexer {}
-
 #[async_trait(?Send)]
 impl Service for Indexer {
     fn get_metrics_server_addr() -> (&'static str, u16) {
@@ -26,12 +24,14 @@ impl Service for Indexer {
 
     async fn run(&'static self) -> anyhow::Result<()> {
         loop {
-            log::info!("Indexer started.");
             let storage = PostgreSQLStorage::new(&CONFIG).await?;
-            let hash = storage.get_block_hash(15).await?;
-            log::info!("Block hash: {}", hash.unwrap_or("NULL".to_string()));
             let sidecar_client = SidecarClient::new(&CONFIG)?;
-            sidecar_client.do_stuff().await?;
+            log::info!("Indexer started.");
+            let head = sidecar_client.get_head().await?;
+            let db_height = storage.get_max_block_number().await?;
+            log::info!("Head @ {} :: {}", head.number, head.timestamp);
+            log::info!("DB @ {db_height}");
+
             let delay_seconds = CONFIG.common.recovery_retry_seconds;
             log::info!(
                 "Indexer ended. Will restart after {} seconds.",

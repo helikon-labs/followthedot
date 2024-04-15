@@ -13,4 +13,15 @@ impl PostgreSQLStorage {
         .await?
         .map(|hash: (String,)| hash.0))
     }
+
+    pub async fn get_max_block_number(&self) -> anyhow::Result<u64> {
+        let processed_block_height: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COALESCE(MAX(number), 0) from ftd_block
+            "#,
+        )
+        .fetch_one(&self.connection_pool)
+        .await?;
+        Ok(processed_block_height.0 as u64)
+    }
 }

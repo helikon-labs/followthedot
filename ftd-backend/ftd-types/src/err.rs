@@ -13,3 +13,17 @@ impl ServiceError {
         }
     }
 }
+
+#[derive(thiserror::Error, Clone, Debug)]
+pub enum BlockDataError {
+    #[error("Block hash not found.")]
+    HashNotFound,
+    #[error("Block parent hash not found.")]
+    ParentHashNotFound,
+    #[error("Block author id not found.")]
+    AuthorIdNotFound,
+    #[error("Block number not found.")]
+    BlockNumberNotFound,
+    #[error("Timestamp not found.")]
+    TimestampNotFound,
+}
