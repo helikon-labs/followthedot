@@ -2,7 +2,9 @@ use ftd_config::Config;
 use sqlx::{Pool, Postgres};
 use std::time::Duration;
 
+pub mod account;
 pub mod block;
+pub mod event;
 
 pub struct PostgreSQLStorage {
     connection_pool: Pool<Postgres>,

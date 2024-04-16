@@ -1,5 +1,6 @@
 use crate::SidecarClient;
-use ftd_types::err::BlockDataError;
+use ftd_types::err::{BlockDataError, IdentityEventDataError, TransferEventDataError};
+use ftd_types::substrate::event::Transfer;
 use ftd_types::substrate::Block;
 use serde_json::Value;
 
@@ -28,11 +29,8 @@ fn get_parent_hash(json: &Value) -> anyhow::Result<String> {
         .to_string())
 }
 
-fn get_author_address(json: &Value) -> anyhow::Result<String> {
-    Ok(json["authorId"]
-        .as_str()
-        .ok_or(BlockDataError::AuthorIdNotFound)?
-        .to_string())
+fn get_author_address(json: &Value) -> Option<String> {
+    json["authorId"].as_str().map(|str| str.to_string())
 }
 
 fn get_timestamp(json: &Value) -> anyhow::Result<u64> {
@@ -40,6 +38,99 @@ fn get_timestamp(json: &Value) -> anyhow::Result<u64> {
         .as_str()
         .ok_or(BlockDataError::TimestampNotFound)?
         .parse::<u64>()?)
+}
+
+fn get_transfer_events(json: &Value) -> anyhow::Result<Vec<Transfer>> {
+    let mut transfers = Vec::new();
+    let extrinsics = json["extrinsics"]
+        .as_array()
+        .ok_or(BlockDataError::ExtrinsicsNotFound)?;
+    let mut event_index: u16 = 0;
+    for (extrinsic_index, extrinsic) in extrinsics.iter().enumerate() {
+        let events = extrinsic["events"]
+            .as_array()
+            .ok_or(BlockDataError::ExtrinsicEventsNotFound)?;
+        for (extrinsic_event_index, event_json) in events.iter().enumerate() {
+            let module = event_json["method"]["pallet"]
+                .as_str()
+                .ok_or(BlockDataError::EventModuleNotFound)?;
+            let event = event_json["method"]["method"]
+                .as_str()
+                .ok_or(BlockDataError::EventNameNotFound)?;
+            if module.to_lowercase() == "balances" && event.to_lowercase() == "transfer" {
+                log::info!("Found {module}.{event}.");
+                let from = event_json["data"][0]
+                    .as_str()
+                    .ok_or(TransferEventDataError::FromNotFound)?
+                    .to_string();
+                let to = event_json["data"][1]
+                    .as_str()
+                    .ok_or(TransferEventDataError::ToNotFound)?
+                    .to_string();
+                let amount = event_json["data"][2]
+                    .as_str()
+                    .ok_or(TransferEventDataError::AmountNotFound)?
+                    .parse::<u128>()?;
+                transfers.push(Transfer {
+                    extrinsic_index: extrinsic_index as u16,
+                    extrinsic_event_index: extrinsic_event_index as u16,
+                    event_index,
+                    from,
+                    to,
+                    amount,
+                })
+            }
+            event_index += 1;
+        }
+    }
+    Ok(transfers)
+}
+
+fn get_update_identities_of(json: &Value) -> anyhow::Result<Vec<String>> {
+    let mut addresses = Vec::new();
+    let extrinsics = json["extrinsics"]
+        .as_array()
+        .ok_or(BlockDataError::ExtrinsicsNotFound)?;
+    for extrinsic in extrinsics.iter() {
+        let events = extrinsic["events"]
+            .as_array()
+            .ok_or(BlockDataError::ExtrinsicEventsNotFound)?;
+        for event_json in events.iter() {
+            let module = event_json["method"]["pallet"]
+                .as_str()
+                .ok_or(BlockDataError::EventModuleNotFound)?;
+            let event = event_json["method"]["method"]
+                .as_str()
+                .ok_or(BlockDataError::EventNameNotFound)?;
+            if module.to_lowercase() == "identity" {
+                match event.to_lowercase().as_str() {
+                    "identityset" | "identitycleared" | "identitykilled" | "judgementgiven" => {
+                        log::info!("Found {module}.{event}.");
+                        let adress = event_json["data"][0]
+                            .as_str()
+                            .ok_or(IdentityEventDataError::AccountNotFound)?
+                            .to_string();
+                        addresses.push(adress);
+                    }
+                    "subidentityadded" | "subidentityremoved" | "subidentityrevoked" => {
+                        log::info!("Found {module}.{event}.");
+                        let sub_address = event_json["data"][0]
+                            .as_str()
+                            .ok_or(IdentityEventDataError::SubAccountNotFound)?
+                            .to_string();
+                        let super_address = event_json["data"][1]
+                            .as_str()
+                            .ok_or(IdentityEventDataError::SuperAccountNotFound)?
+                            .to_string();
+                        addresses.push(super_address);
+                        addresses.push(sub_address);
+                    }
+                    _ => (),
+                }
+            }
+        }
+    }
+    Ok(addresses)
 }
 
 impl SidecarClient {
@@ -63,6 +154,7 @@ impl SidecarClient {
         let json = self
             .http_client
             .get(&url)
+            .query(&[("finalized", true), ("noFees", true)])
             .send()
             .await?
             .json::<Value>()
@@ -70,15 +162,18 @@ impl SidecarClient {
         let number = get_number(&json)?;
         let hash = get_hash(&json)?;
         let parent_hash = get_parent_hash(&json)?;
-        let author_address = get_author_address(&json)?;
+        let author_address = get_author_address(&json);
         let timestamp = self.get_block_timestamp(&hash).await?;
+        let transfers = get_transfer_events(&json)?;
+        let update_identities_of = get_update_identities_of(&json)?;
         Ok(Block {
             timestamp,
             number,
             hash,
             parent_hash,
             author_address,
-            transfers: Vec::new(),
+            transfers,
+            update_identities_of,
         })
     }
 

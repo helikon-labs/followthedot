@@ -1,3 +1,3 @@
-# FollowTheDot Backend
+# FollowTheDot
 
-FollowTheDot backend system implementation.
+FollowTheDot (FTD) is a cash-flow indexer and visualizer for the Polkadot ecosystem.

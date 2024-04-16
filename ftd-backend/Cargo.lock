@@ -915,6 +915,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "ftd-config",
+ "ftd-types",
  "log",
  "sqlx",
 ]
@@ -942,6 +943,7 @@ dependencies = [
  "anyhow",
  "ftd-config",
  "ftd-types",
+ "hex",
  "log",
  "reqwest",
  "serde_json",
