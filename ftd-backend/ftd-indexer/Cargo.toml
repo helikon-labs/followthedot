@@ -15,6 +15,7 @@ ftd-metrics = { path = "../ftd-metrics" }
 ftd-persistence = { path = "../ftd-persistence" }
 ftd-service = { path = "../ftd-service" }
 ftd-sidecar-client = { path = "../ftd-sidecar-client" }
+ftd-types = { path = "../ftd-types" }
 lazy_static = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }

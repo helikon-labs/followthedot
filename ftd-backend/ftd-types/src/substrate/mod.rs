@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod event;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Block {
     pub timestamp: u64,
     pub number: u64,
@@ -12,6 +12,18 @@ pub struct Block {
     pub author_address: Option<String>,
     pub transfers: Vec<Transfer>,
     pub update_identities_of: Vec<String>,
+}
+
+impl Block {
+    pub fn convert_to_old_dot(&self) -> Block {
+        let mut block = self.clone();
+        for transfer in self.transfers.iter() {
+            let mut transfer = transfer.clone();
+            transfer.amount /= 100;
+            block.transfers.push(transfer);
+        }
+        block
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

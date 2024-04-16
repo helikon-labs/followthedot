@@ -38,6 +38,7 @@ impl PostgreSQLStorage {
     }
 
     pub async fn save_block(&self, block: &Block) -> anyhow::Result<Option<String>> {
+        let mut transaction = self.connection_pool.begin().await?;
         let maybe_result: Option<(String,)> = sqlx::query_as(
             r#"
             INSERT INTO ftd_block (hash, number, timestamp, parent_hash)
@@ -50,11 +51,13 @@ impl PostgreSQLStorage {
         .bind(block.number as i64)
         .bind(block.timestamp as i64)
         .bind(&block.parent_hash)
-        .fetch_optional(&self.connection_pool)
+        .fetch_optional(&mut *transaction)
         .await?;
         for transfer in block.transfers.iter() {
-            self.save_transfer_event(block, transfer).await?;
+            self.save_transfer_event(block, transfer, &mut transaction)
+                .await?;
         }
+        transaction.commit().await?;
         if let Some(result) = maybe_result {
             Ok(Some(result.0))
         } else {
@@ -70,6 +73,19 @@ impl PostgreSQLStorage {
             "#,
         )
         .bind(hash)
+        .fetch_one(&self.connection_pool)
+        .await?;
+        Ok(record_count.0 > 0)
+    }
+
+    pub async fn block_exists_by_number(&self, number: u64) -> anyhow::Result<bool> {
+        let record_count: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COUNT(number) FROM ftd_block
+            WHERE number = $1
+            "#,
+        )
+        .bind(number as i64)
         .fetch_one(&self.connection_pool)
         .await?;
         Ok(record_count.0 > 0)

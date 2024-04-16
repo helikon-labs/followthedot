@@ -1,12 +1,14 @@
 use crate::PostgreSQLStorage;
 use ftd_types::substrate::event::Transfer;
 use ftd_types::substrate::Block;
+use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {
     pub async fn save_transfer_event(
         &self,
         block: &Block,
         transfer: &Transfer,
+        transaction: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<i32> {
         self.save_account(&transfer.from, &None, &None).await?;
         self.save_account(&transfer.to, &None, &None).await?;
@@ -25,7 +27,7 @@ impl PostgreSQLStorage {
             .bind(&transfer.from)
             .bind(&transfer.to)
             .bind(&transfer.amount.to_string())
-            .fetch_one(&self.connection_pool)
+            .fetch_one(&mut **transaction)
             .await?;
         Ok(result.0)
     }

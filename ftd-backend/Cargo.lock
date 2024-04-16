@@ -880,6 +880,7 @@ dependencies = [
  "ftd-persistence",
  "ftd-service",
  "ftd-sidecar-client",
+ "ftd-types",
  "lazy_static",
  "log",
  "once_cell",
