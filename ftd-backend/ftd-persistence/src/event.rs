@@ -10,8 +10,10 @@ impl PostgreSQLStorage {
         transfer: &Transfer,
         transaction: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<i32> {
-        self.save_account(&transfer.from, &None, &None).await?;
-        self.save_account(&transfer.to, &None, &None).await?;
+        self.save_account(&transfer.from, &None, &None, block.number)
+            .await?;
+        self.save_account(&transfer.to, &None, &None, block.number)
+            .await?;
         let result: (i32,) = sqlx::query_as(
             r#"
             INSERT INTO ftd_transfer (block_hash, timestamp, extrinsic_index, extrinsic_event_index, event_index, from_address, to_address, amount)

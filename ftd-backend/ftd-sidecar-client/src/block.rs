@@ -149,6 +149,34 @@ impl SidecarClient {
         get_timestamp(&json)
     }
 
+    async fn get_blocks(&self, json: &Value) -> anyhow::Result<Vec<Block>> {
+        let blocks_json = json.as_array().ok_or(BlockDataError::BlockArrayNotFound)?;
+        let mut blocks = Vec::new();
+        for block_json in blocks_json {
+            blocks.push(self.get_block(block_json).await?);
+        }
+        Ok(blocks)
+    }
+
+    async fn get_block(&self, json: &Value) -> anyhow::Result<Block> {
+        let number = get_number(json)?;
+        let hash = get_hash(json)?;
+        let parent_hash = get_parent_hash(json)?;
+        let author_address = get_author_address(json);
+        let timestamp = self.get_block_timestamp(&hash).await?;
+        let transfers = get_transfer_events(json)?;
+        let update_identities_of = get_update_identities_of(json)?;
+        Ok(Block {
+            timestamp,
+            number,
+            hash,
+            parent_hash,
+            author_address,
+            transfers,
+            update_identities_of,
+        })
+    }
+
     async fn get_block_from_path(&self, path: &str) -> anyhow::Result<Block> {
         let url = format!("{}{}", self.base_url, path);
         let json = self
@@ -159,22 +187,7 @@ impl SidecarClient {
             .await?
             .json::<Value>()
             .await?;
-        let number = get_number(&json)?;
-        let hash = get_hash(&json)?;
-        let parent_hash = get_parent_hash(&json)?;
-        let author_address = get_author_address(&json);
-        let timestamp = self.get_block_timestamp(&hash).await?;
-        let transfers = get_transfer_events(&json)?;
-        let update_identities_of = get_update_identities_of(&json)?;
-        Ok(Block {
-            timestamp,
-            number,
-            hash,
-            parent_hash,
-            author_address,
-            transfers,
-            update_identities_of,
-        })
+        self.get_block(&json).await
     }
 
     pub async fn get_head(&self) -> anyhow::Result<Block> {
@@ -191,5 +204,23 @@ impl SidecarClient {
         } else {
             self.get_block_from_path(&format!("/blocks/0x{hash}")).await
         }
+    }
+
+    pub async fn get_range_of_blocks(
+        &self,
+        start_block_number: u64,
+        end_block_number: u64,
+    ) -> anyhow::Result<Vec<Block>> {
+        let url = format!("{}/blocks", self.base_url);
+        let range = format!("{}-{}", start_block_number, end_block_number);
+        let json = self
+            .http_client
+            .get(&url)
+            .query(&[("range", range.as_str()), ("noFees", "true")])
+            .send()
+            .await?
+            .json::<Value>()
+            .await?;
+        self.get_blocks(&json).await
     }
 }

@@ -16,6 +16,8 @@ impl ServiceError {
 
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum BlockDataError {
+    #[error("Block array not found.")]
+    BlockArrayNotFound,
     #[error("Block hash not found.")]
     HashNotFound,
     #[error("Block parent hash not found.")]

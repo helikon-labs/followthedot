@@ -5,6 +5,7 @@ use ftd_service::Service;
 use ftd_sidecar_client::SidecarClient;
 use ftd_types::substrate::Block;
 use lazy_static::lazy_static;
+use std::cmp::min;
 use std::sync::atomic::AtomicBool;
 
 mod metrics;
@@ -20,16 +21,15 @@ async fn update_identity_of(
     storage: &PostgreSQLStorage,
     sidecar_client: &SidecarClient,
     address: &str,
-    block_hash: &str,
+    block: &Block,
 ) -> anyhow::Result<()> {
-    let identity = sidecar_client.get_identity_of(address, block_hash).await?;
+    let identity = sidecar_client.get_identity_of(address, &block.hash).await?;
     let sub_identity = sidecar_client
-        .get_sub_identity_of(address, block_hash)
+        .get_sub_identity_of(address, &block.hash)
         .await?;
     storage
-        .save_account(address, &identity, &sub_identity)
+        .save_account(address, &identity, &sub_identity, block.number)
         .await?;
-    log::info!("Updated identity of {address}.");
     Ok(())
 }
 
@@ -44,7 +44,7 @@ async fn save_block(
         storage.save_block(block).await?;
     }
     for address in block.update_identities_of.iter() {
-        update_identity_of(storage, sidecar_client, address, &block.hash).await?;
+        update_identity_of(storage, sidecar_client, address, block).await?;
     }
     Ok(())
 }
@@ -84,16 +84,41 @@ impl Service for Indexer {
                     head.number
                 };
             while block_number <= end_block_number {
-                if storage.block_exists_by_number(block_number).await? {
-                    log::info!(" Block {} exists.", block_number);
-                    block_number += 1;
-                    continue;
+                let chunk_block_number_range = block_number
+                    ..=min(
+                        block_number + CONFIG.indexer.chunk_size as u64 - 1,
+                        end_block_number,
+                    );
+                let range_start_block_number = *chunk_block_number_range.start();
+                let range_end_block_number = *chunk_block_number_range.end();
+                let chunk_block_numbers = chunk_block_number_range.collect::<Vec<u64>>();
+                let mut block_numbers = Vec::new();
+                for chunk_block_number in &chunk_block_numbers {
+                    if !storage.block_exists_by_number(*chunk_block_number).await? {
+                        block_numbers.push(chunk_block_number);
+                    }
                 }
-                log::info!("Fetch block {}.", block_number);
-                let block = sidecar_client.get_block_by_number(block_number).await?;
-                save_block(&storage, &sidecar_client, &block).await?;
-                log::info!("Persisted block {}.", block.number);
-                block_number += 1;
+                if block_numbers.len() > 1 && block_numbers.len() == chunk_block_numbers.len() {
+                    log::info!(
+                        "Fetch blocks {}-{}.",
+                        range_start_block_number,
+                        range_end_block_number
+                    );
+                    let blocks = sidecar_client
+                        .get_range_of_blocks(range_start_block_number, range_end_block_number)
+                        .await?;
+                    for block in blocks {
+                        save_block(&storage, &sidecar_client, &block).await?;
+                        log::info!("Persisted block {}.", block.number);
+                    }
+                } else {
+                    for block_number in block_numbers {
+                        let block = sidecar_client.get_block_by_number(*block_number).await?;
+                        save_block(&storage, &sidecar_client, &block).await?;
+                        log::info!("Persisted block {}.", block.number);
+                    }
+                }
+                block_number = range_end_block_number + 1;
             }
             if CONFIG.indexer.end_block_number.is_some() {
                 return Ok(());

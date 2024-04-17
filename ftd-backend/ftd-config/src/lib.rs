@@ -54,6 +54,7 @@ pub struct SubstrateConfig {
 pub struct IndexerConfig {
     pub start_block_number: Option<u64>,
     pub end_block_number: Option<u64>,
+    pub chunk_size: u16,
 }
 
 #[derive(Clone, Debug, Deserialize)]
