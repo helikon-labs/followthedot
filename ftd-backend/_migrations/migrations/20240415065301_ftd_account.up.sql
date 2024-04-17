@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS ftd_account
             ON UPDATE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS ftd_account_idx_address_identity_updated_at_block_number
+    ON ftd_account (address, identity_updated_at_block_number);
 CREATE INDEX IF NOT EXISTS ftd_account_idx_display
     ON ftd_account (display);
 CREATE INDEX IF NOT EXISTS ftd_account_idx_sub_display
