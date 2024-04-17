@@ -27,7 +27,7 @@ token_format_decimal_points = 4
 [indexer]
 start_block_number = 12_000_000
 # end_block_number = 12_000_500
-chunk_size = 10
+chunk_size = 100
 
 [metrics]
 host = "127.0.0.1"
