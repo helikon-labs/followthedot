@@ -51,6 +51,12 @@ pub struct SubstrateConfig {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+pub struct IndexerConfig {
+    pub start_block_number: Option<u64>,
+    pub end_block_number: Option<u64>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct LogConfig {
     pub ftd_level: String,
     pub other_level: String,
@@ -81,6 +87,7 @@ pub struct Config {
     pub log: LogConfig,
     pub postgres: PostgreSQLConfig,
     pub substrate: SubstrateConfig,
+    pub indexer: IndexerConfig,
     pub metrics: MetricsConfig,
 }
 

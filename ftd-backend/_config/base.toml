@@ -1,16 +1,6 @@
 [common]
 recovery_retry_seconds = 5
 
-[substrate]
-chain = "polkadot"
-chain_display = "Polkadot"
-sidecar_url = "https://sidecar.helikon.io/polkadot"
-connection_timeout_seconds = 15
-request_timeout_seconds = 15
-token_ticker = "DOT"
-token_decimals = 10
-token_format_decimal_points = 4
-
 [log]
 ftd_level = "debug"
 other_level = "warn"
@@ -23,6 +13,20 @@ password = "ftd"
 database_name = "ftd"
 pool_max_connections = 64
 connection_timeout_seconds = 5
+
+[substrate]
+chain = "polkadot"
+chain_display = "Polkadot"
+sidecar_url = "https://sidecar.helikon.io/polkadot"
+connection_timeout_seconds = 15
+request_timeout_seconds = 15
+token_ticker = "DOT"
+token_decimals = 10
+token_format_decimal_points = 4
+
+[indexer]
+start_block_number = 12_000_000
+# end_block_number = 12_000_500
 
 [metrics]
 host = "127.0.0.1"
