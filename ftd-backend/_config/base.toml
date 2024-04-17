@@ -17,7 +17,7 @@ connection_timeout_seconds = 5
 [substrate]
 chain = "polkadot"
 chain_display = "Polkadot"
-sidecar_url = "https://sidecar.helikon.io/polkadot"
+sidecar_url = "wss://polkadot-rpc.dwellir.com"
 connection_timeout_seconds = 15
 request_timeout_seconds = 15
 token_ticker = "DOT"

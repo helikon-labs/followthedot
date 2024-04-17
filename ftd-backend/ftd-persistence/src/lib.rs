@@ -4,7 +4,8 @@ use std::time::Duration;
 
 pub mod account;
 pub mod block;
-pub mod event;
+pub mod transfer;
+pub mod transfer_volume;
 
 pub struct PostgreSQLStorage {
     connection_pool: Pool<Postgres>,

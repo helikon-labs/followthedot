@@ -56,6 +56,8 @@ impl PostgreSQLStorage {
         for transfer in block.transfers.iter() {
             self.save_transfer_event(block, transfer, &mut transaction)
                 .await?;
+            self.update_transfer_volume(transfer, &mut transaction)
+                .await?;
         }
         transaction.commit().await?;
         if let Some(result) = maybe_result {
