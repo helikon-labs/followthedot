@@ -1,4 +1,4 @@
-use crate::PostgreSQLStorage;
+use super::PostgreSQLStorage;
 use ftd_types::substrate::event::Transfer;
 use sqlx::{Postgres, Transaction};
 
@@ -17,7 +17,7 @@ impl PostgreSQLStorage {
         )
         .bind(&transfer.from)
         .bind(&transfer.to)
-        .fetch_optional(&mut **transaction)
+        .fetch_optional(&self.connection_pool)
         .await?;
         let updated_volume = if let Some(transfer_volume) = maybe_transfer_volume {
             transfer_volume.0.parse::<u128>()? + transfer.amount

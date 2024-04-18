@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ftd_config::Config;
-use ftd_persistence::PostgreSQLStorage;
+use ftd_persistence::postgres::PostgreSQLStorage;
 use ftd_service::Service;
 use ftd_sidecar_client::SidecarClient;
 use ftd_types::substrate::Block;
@@ -17,35 +17,35 @@ lazy_static! {
     static ref IS_BUSY: AtomicBool = AtomicBool::new(false);
 }
 
-async fn update_identity_of(
-    storage: &PostgreSQLStorage,
-    sidecar_client: &SidecarClient,
-    address: &str,
-    block: &Block,
-) -> anyhow::Result<()> {
-    let identity = sidecar_client.get_identity_of(address, &block.hash).await?;
-    let sub_identity = sidecar_client
-        .get_sub_identity_of(address, &block.hash)
-        .await?;
-    storage
-        .save_account(address, &identity, &sub_identity, block.number)
-        .await?;
-    Ok(())
-}
-
 async fn save_block(
     storage: &PostgreSQLStorage,
     sidecar_client: &SidecarClient,
     block: &Block,
 ) -> anyhow::Result<()> {
+    let mut transaction = storage.begin_tx().await?;
     if block.number < REDENOMINATION_BLOCK_NUMBER {
-        storage.save_block(&block.convert_to_old_dot()).await?;
+        storage
+            .save_block(&block.convert_to_old_dot(), &mut transaction)
+            .await?;
     } else {
-        storage.save_block(block).await?;
+        storage.save_block(block, &mut transaction).await?;
     }
     for address in block.update_identities_of.iter() {
-        update_identity_of(storage, sidecar_client, address, block).await?;
+        let identity = sidecar_client.get_identity_of(address, &block.hash).await?;
+        let sub_identity = sidecar_client
+            .get_sub_identity_of(address, &block.hash)
+            .await?;
+        storage
+            .save_account(
+                address,
+                &identity,
+                &sub_identity,
+                block.number,
+                &mut transaction,
+            )
+            .await?;
     }
+    storage.commit_tx(transaction).await?;
     Ok(())
 }
 

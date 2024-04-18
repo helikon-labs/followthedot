@@ -63,7 +63,6 @@ pub struct LogConfig {
     pub other_level: String,
 }
 
-/// PostgreSQL configuration. PostgreSQL is used for historical indexed blockchain data storage.
 #[derive(Clone, Debug, Deserialize)]
 pub struct PostgreSQLConfig {
     pub host: String,
@@ -76,12 +75,19 @@ pub struct PostgreSQLConfig {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+pub struct Neo4JConfig {
+    pub host: String,
+    pub port: u16,
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct MetricsConfig {
     pub host: String,
     pub indexer_port: u16,
 }
 
-/// Whole configuration.
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
     pub common: CommonConfig,

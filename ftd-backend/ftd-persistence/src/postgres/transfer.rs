@@ -1,4 +1,4 @@
-use crate::PostgreSQLStorage;
+use super::PostgreSQLStorage;
 use ftd_types::substrate::event::Transfer;
 use ftd_types::substrate::Block;
 use sqlx::{Postgres, Transaction};
@@ -10,9 +10,9 @@ impl PostgreSQLStorage {
         transfer: &Transfer,
         transaction: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<i32> {
-        self.save_account(&transfer.from, &None, &None, block.number)
+        self.save_account(&transfer.from, &None, &None, block.number, transaction)
             .await?;
-        self.save_account(&transfer.to, &None, &None, block.number)
+        self.save_account(&transfer.to, &None, &None, block.number, transaction)
             .await?;
         let result: (i32,) = sqlx::query_as(
             r#"

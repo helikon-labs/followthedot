@@ -1,5 +1,6 @@
-use crate::PostgreSQLStorage;
+use super::PostgreSQLStorage;
 use ftd_types::substrate::{Identity, SubIdentity};
+use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {
     pub async fn save_account(
@@ -8,6 +9,7 @@ impl PostgreSQLStorage {
         identity: &Option<Identity>,
         sub_identity: &Option<SubIdentity>,
         block_number: u64,
+        transaction: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<Option<String>> {
         let more_recent_identity_update_exists: (bool,) = sqlx::query_as(
             r#"
@@ -59,7 +61,7 @@ impl PostgreSQLStorage {
                 .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.super_address))
                 .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.sub_display))
                 .bind(identity_updated_at_block_number.map(|n| n as i64))
-                .fetch_optional(&self.connection_pool)
+                .fetch_optional(&mut **transaction)
                 .await?
         } else {
             sqlx::query_as(
@@ -71,7 +73,7 @@ impl PostgreSQLStorage {
             "#,
             )
             .bind(address)
-            .fetch_optional(&self.connection_pool)
+            .fetch_optional(&mut **transaction)
             .await?
         };
         if let Some(result) = maybe_result {

@@ -1,5 +1,6 @@
-use crate::PostgreSQLStorage;
+use super::PostgreSQLStorage;
 use ftd_types::substrate::Block;
+use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {
     pub async fn get_block_hash(&self, block_number: u64) -> anyhow::Result<Option<String>> {
@@ -37,8 +38,11 @@ impl PostgreSQLStorage {
         Ok(min_block_number.0 as u64)
     }
 
-    pub async fn save_block(&self, block: &Block) -> anyhow::Result<Option<String>> {
-        let mut transaction = self.connection_pool.begin().await?;
+    pub async fn save_block(
+        &self,
+        block: &Block,
+        transaction: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<Option<String>> {
         let maybe_result: Option<(String,)> = sqlx::query_as(
             r#"
             INSERT INTO ftd_block (hash, number, timestamp, parent_hash)
@@ -51,15 +55,13 @@ impl PostgreSQLStorage {
         .bind(block.number as i64)
         .bind(block.timestamp as i64)
         .bind(&block.parent_hash)
-        .fetch_optional(&mut *transaction)
+        .fetch_optional(&mut **transaction)
         .await?;
         for transfer in block.transfers.iter() {
-            self.save_transfer_event(block, transfer, &mut transaction)
+            self.save_transfer_event(block, transfer, transaction)
                 .await?;
-            self.update_transfer_volume(transfer, &mut transaction)
-                .await?;
+            self.update_transfer_volume(transfer, transaction).await?;
         }
-        transaction.commit().await?;
         if let Some(result) = maybe_result {
             Ok(Some(result.0))
         } else {
