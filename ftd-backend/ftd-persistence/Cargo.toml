@@ -9,5 +9,7 @@ anyhow = { workspace = true }
 chrono = { workspace = true }
 ftd-config = { path = "../ftd-config" }
 ftd-types = { path = "../ftd-types" }
+lazy_static = { workspace = true }
 log = { workspace = true }
+neo4rs = { workspace = true }
 sqlx = { workspace = true, features = ["postgres", "runtime-tokio-rustls", "chrono"] }

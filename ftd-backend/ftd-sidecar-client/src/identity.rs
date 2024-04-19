@@ -1,6 +1,6 @@
 use crate::SidecarClient;
 use ftd_types::err::IdentityDataError;
-use ftd_types::substrate::{Identity, SubIdentity};
+use ftd_types::substrate::{Block, Identity, SubIdentity};
 use serde_json::Value;
 
 fn get_judgement(value: &Value) -> anyhow::Result<Option<String>> {
@@ -39,11 +39,7 @@ fn get_raw_from_info(info: &Value, key: &str) -> anyhow::Result<Option<String>> 
 }
 
 impl SidecarClient {
-    pub async fn get_identity_of(
-        &self,
-        address: &str,
-        at: &str,
-    ) -> anyhow::Result<Option<Identity>> {
+    async fn get_identity_of(&self, address: &str, at: &str) -> anyhow::Result<Option<Identity>> {
         let json = self
             .http_client
             .get(&format!(
@@ -82,7 +78,7 @@ impl SidecarClient {
         }))
     }
 
-    pub async fn get_sub_identity_of(
+    async fn get_sub_identity_of(
         &self,
         address: &str,
         at: &str,
@@ -115,5 +111,23 @@ impl SidecarClient {
             super_address,
             sub_display,
         }))
+    }
+
+    pub async fn get_block_update_identities(
+        &self,
+        block: &Block,
+    ) -> anyhow::Result<Vec<(String, Option<Identity>, Option<SubIdentity>)>> {
+        let mut update_identities: Vec<(String, Option<Identity>, Option<SubIdentity>)> =
+            Vec::new();
+        for update_identity_address in block.update_identities_of.iter() {
+            update_identities.push((
+                update_identity_address.clone(),
+                self.get_identity_of(update_identity_address, &block.hash)
+                    .await?,
+                self.get_sub_identity_of(update_identity_address, &block.hash)
+                    .await?,
+            ));
+        }
+        Ok(update_identities)
     }
 }

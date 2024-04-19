@@ -4,16 +4,12 @@ use ftd_types::substrate::Block;
 use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {
-    pub async fn save_transfer_event(
+    pub async fn save_transfer(
         &self,
         block: &Block,
         transfer: &Transfer,
         transaction: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<i32> {
-        self.save_account(&transfer.from, &None, &None, block.number, transaction)
-            .await?;
-        self.save_account(&transfer.to, &None, &None, block.number, transaction)
-            .await?;
         let result: (i32,) = sqlx::query_as(
             r#"
             INSERT INTO ftd_transfer (block_hash, timestamp, extrinsic_index, extrinsic_event_index, event_index, from_address, to_address, amount)

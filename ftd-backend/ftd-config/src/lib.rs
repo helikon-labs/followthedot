@@ -78,6 +78,7 @@ pub struct PostgreSQLConfig {
 pub struct Neo4JConfig {
     pub host: String,
     pub port: u16,
+    pub database_name: String,
     pub username: String,
     pub password: String,
 }
@@ -93,6 +94,7 @@ pub struct Config {
     pub common: CommonConfig,
     pub log: LogConfig,
     pub postgres: PostgreSQLConfig,
+    pub neo4j: Neo4JConfig,
     pub substrate: SubstrateConfig,
     pub indexer: IndexerConfig,
     pub metrics: MetricsConfig,

@@ -6,10 +6,33 @@ impl PostgreSQLStorage {
     pub async fn save_account(
         &self,
         address: &str,
+        tx: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<Option<String>> {
+        let maybe_result: Option<(String,)> = sqlx::query_as(
+            r#"
+            INSERT INTO ftd_account (address)
+            VALUES ($1)
+            ON CONFLICT (address) DO NOTHING
+            RETURNING address
+            "#,
+        )
+        .bind(address)
+        .fetch_optional(&mut **tx)
+        .await?;
+        if let Some(result) = maybe_result {
+            Ok(Some(result.0))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub async fn save_account_with_identity(
+        &self,
+        address: &str,
         identity: &Option<Identity>,
         sub_identity: &Option<SubIdentity>,
         block_number: u64,
-        transaction: &mut Transaction<'_, Postgres>,
+        tx: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<Option<String>> {
         let more_recent_identity_update_exists: (bool,) = sqlx::query_as(
             r#"
@@ -61,7 +84,7 @@ impl PostgreSQLStorage {
                 .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.super_address))
                 .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.sub_display))
                 .bind(identity_updated_at_block_number.map(|n| n as i64))
-                .fetch_optional(&mut **transaction)
+                .fetch_optional(&mut **tx)
                 .await?
         } else {
             sqlx::query_as(
@@ -73,7 +96,7 @@ impl PostgreSQLStorage {
             "#,
             )
             .bind(address)
-            .fetch_optional(&mut **transaction)
+            .fetch_optional(&mut **tx)
             .await?
         };
         if let Some(result) = maybe_result {

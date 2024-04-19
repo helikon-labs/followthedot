@@ -17,8 +17,9 @@ connection_timeout_seconds = 5
 [neo4j]
 host = "127.0.0.1"
 port = 7687
-username = "ftd"
-password = "ftd"
+username = "neo4j"
+password = "neo4j_password"
+database_name = "neo4j"
 
 [substrate]
 chain = "polkadot"

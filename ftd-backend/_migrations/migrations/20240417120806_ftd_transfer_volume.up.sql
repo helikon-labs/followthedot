@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS ftd_transfer_volume
     from_address VARCHAR(64)                 NOT NULL,
     to_address   VARCHAR(64)                 NOT NULL,
     volume       VARCHAR(128)                NOT NULL DEFAULT 0,
+    count        INTEGER                     NOT NULL DEFAULT 1,
     created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     updated_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     PRIMARY KEY (from_address, to_address),

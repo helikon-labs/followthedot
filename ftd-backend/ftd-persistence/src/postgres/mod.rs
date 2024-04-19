@@ -7,7 +7,7 @@ pub mod block;
 pub mod transfer;
 pub mod transfer_volume;
 
-pub struct PostgreSQLStorage {
+pub(crate) struct PostgreSQLStorage {
     connection_pool: Pool<Postgres>,
 }
 

@@ -7,7 +7,7 @@ impl PostgreSQLStorage {
         &self,
         transfer: &Transfer,
         transaction: &mut Transaction<'_, Postgres>,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<(u128, u32)> {
         let maybe_transfer_volume: Option<(String,)> = sqlx::query_as(
             r#"
             SELECT volume
@@ -17,28 +17,30 @@ impl PostgreSQLStorage {
         )
         .bind(&transfer.from)
         .bind(&transfer.to)
-        .fetch_optional(&self.connection_pool)
+        .fetch_optional(&mut **transaction)
         .await?;
-        let updated_volume = if let Some(transfer_volume) = maybe_transfer_volume {
+        let volume = if let Some(transfer_volume) = maybe_transfer_volume {
             transfer_volume.0.parse::<u128>()? + transfer.amount
         } else {
             transfer.amount
         };
-        sqlx::query(
+        let result: (i32,) = sqlx::query_as(
             r#"
             INSERT INTO ftd_transfer_volume (from_address, to_address, volume)
             VALUES ($1, $2, $3)
             ON CONFLICT (from_address, to_address) DO UPDATE
             SET
                 volume = EXCLUDED.volume,
+                count = ftd_transfer_volume.count + 1,
                 updated_at = now()
+            RETURNING count
             "#,
         )
         .bind(&transfer.from)
         .bind(&transfer.to)
-        .bind(&updated_volume.to_string())
-        .execute(&mut **transaction)
+        .bind(&volume.to_string())
+        .fetch_one(&mut **transaction)
         .await?;
-        Ok(())
+        Ok((volume, result.0 as u32))
     }
 }
