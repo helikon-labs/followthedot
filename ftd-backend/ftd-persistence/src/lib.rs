@@ -86,7 +86,8 @@ impl Storage {
                 .await?;
         }
         for update_identity in update_identities.iter() {
-            self.postgres
+            let updated_identity = self
+                .postgres
                 .save_account_with_identity(
                     update_identity.0.as_str(),
                     &update_identity.1,
@@ -95,14 +96,20 @@ impl Storage {
                     &mut postgres_tx,
                 )
                 .await?;
-            self.neo4j
-                .save_account_with_identity(
-                    update_identity.0.as_str(),
-                    &update_identity.1,
-                    &update_identity.2,
-                    &mut neo4j_tx,
-                )
-                .await?;
+            if updated_identity {
+                self.neo4j
+                    .save_account_with_identity(
+                        update_identity.0.as_str(),
+                        &update_identity.1,
+                        &update_identity.2,
+                        &mut neo4j_tx,
+                    )
+                    .await?;
+            } else {
+                self.neo4j
+                    .save_account(update_identity.0.as_str(), &mut neo4j_tx)
+                    .await?;
+            }
         }
 
         self.neo4j.commit_tx(neo4j_tx).await?;

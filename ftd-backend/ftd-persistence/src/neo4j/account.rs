@@ -31,11 +31,20 @@ impl Neo4JStorage {
         tx: &mut Txn,
     ) -> anyhow::Result<()> {
         self.save_account(address, tx).await?;
-        let display = if let Some(identity) = identity {
-            identity.display.as_deref()
-        } else {
-            None
-        };
+        let (display, legal, web, riot, email, twitter, judgement) =
+            if let Some(identity) = identity {
+                (
+                    identity.display.as_deref(),
+                    identity.legal.as_deref(),
+                    identity.web.as_deref(),
+                    identity.riot.as_deref(),
+                    identity.email.as_deref(),
+                    identity.twitter.as_deref(),
+                    identity.judgement.as_deref(),
+                )
+            } else {
+                (None, None, None, None, None, None, None)
+            };
         let sub_display = if let Some(sub_identity) = sub_identity {
             sub_identity.sub_display.as_deref()
         } else {
@@ -46,11 +55,17 @@ impl Neo4JStorage {
                 r#"
                     MATCH (a:Account)
                     WHERE a.address = $address
-                    SET a.display = $display, a.sub_display = $sub_display
+                    SET a.display = $display, a.legal = $legal, a.web = $web, a.riot = $riot, a.email = $email, a.twitter = $twitter, a.judgement = $judgement, a.sub_display = $sub_display
                     "#,
             )
             .param("address", address)
             .param("display", display)
+            .param("legal", legal)
+            .param("web", web)
+            .param("riot", riot)
+            .param("email", email)
+            .param("twitter", twitter)
+            .param("judgement", judgement)
             .param("sub_display", sub_display),
         )
         .await?;

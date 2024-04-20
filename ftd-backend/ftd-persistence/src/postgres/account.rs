@@ -33,7 +33,7 @@ impl PostgreSQLStorage {
         sub_identity: &Option<SubIdentity>,
         block_number: u64,
         tx: &mut Transaction<'_, Postgres>,
-    ) -> anyhow::Result<Option<String>> {
+    ) -> anyhow::Result<bool> {
         let more_recent_identity_update_exists: (bool,) = sqlx::query_as(
             r#"
                 SELECT EXISTS(
@@ -52,8 +52,9 @@ impl PostgreSQLStorage {
         } else {
             None
         };
-        let maybe_result: Option<(String,)> = if !more_recent_identity_update_exists.0 {
-            sqlx::query_as(
+        let mut updated_identity = false;
+        if !more_recent_identity_update_exists.0 && (identity.is_some() || sub_identity.is_some()) {
+            let maybe_result: Option<(String,)> = sqlx::query_as(
                 r#"
             INSERT INTO ftd_account (address, display, legal, web, riot, email, twitter, judgement, super_address, sub_display, identity_updated_at_block_number)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -85,9 +86,10 @@ impl PostgreSQLStorage {
                 .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.sub_display))
                 .bind(identity_updated_at_block_number.map(|n| n as i64))
                 .fetch_optional(&mut **tx)
-                .await?
+                .await?;
+            updated_identity = maybe_result.is_some();
         } else {
-            sqlx::query_as(
+            sqlx::query(
                 r#"
             INSERT INTO ftd_account (address)
             VALUES ($1)
@@ -96,13 +98,9 @@ impl PostgreSQLStorage {
             "#,
             )
             .bind(address)
-            .fetch_optional(&mut **tx)
-            .await?
-        };
-        if let Some(result) = maybe_result {
-            Ok(Some(result.0))
-        } else {
-            Ok(None)
+            .execute(&mut **tx)
+            .await?;
         }
+        Ok(updated_identity)
     }
 }
