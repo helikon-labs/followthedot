@@ -74,7 +74,7 @@ impl Service for Indexer {
                         storage
                             .save_block(
                                 block.clone(),
-                                sidecar.get_block_update_identities(&block).await?,
+                                sidecar.get_block_identity_updates(&block).await?,
                             )
                             .await?;
                         log::info!("Persisted block {}.", block.number);
@@ -83,8 +83,8 @@ impl Service for Indexer {
                     for block_number in block_numbers {
                         let block = sidecar.get_block_by_number(*block_number).await?;
                         let block_number = block.number;
-                        let update_identities = sidecar.get_block_update_identities(&block).await?;
-                        storage.save_block(block, update_identities).await?;
+                        let identity_changes = sidecar.get_block_identity_updates(&block).await?;
+                        storage.save_block(block, identity_changes).await?;
                         log::info!("Persisted block {}.", block_number);
                     }
                 }

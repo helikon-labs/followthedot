@@ -1,5 +1,6 @@
 use crate::SidecarClient;
 use ftd_types::err::IdentityDataError;
+use ftd_types::substrate::event::IdentityChange;
 use ftd_types::substrate::{Block, Identity, SubIdentity};
 use serde_json::Value;
 
@@ -113,21 +114,21 @@ impl SidecarClient {
         }))
     }
 
-    pub async fn get_block_update_identities(
+    pub async fn get_block_identity_updates(
         &self,
         block: &Block,
-    ) -> anyhow::Result<Vec<(String, Option<Identity>, Option<SubIdentity>)>> {
-        let mut update_identities: Vec<(String, Option<Identity>, Option<SubIdentity>)> =
+    ) -> anyhow::Result<Vec<(IdentityChange, Option<Identity>, Option<SubIdentity>)>> {
+        let mut identity_updates: Vec<(IdentityChange, Option<Identity>, Option<SubIdentity>)> =
             Vec::new();
-        for update_identity_address in block.update_identities_of.iter() {
-            update_identities.push((
-                update_identity_address.clone(),
-                self.get_identity_of(update_identity_address, &block.hash)
+        for identity_change in block.identity_changes.iter() {
+            identity_updates.push((
+                identity_change.clone(),
+                self.get_identity_of(&identity_change.address, &block.hash)
                     .await?,
-                self.get_sub_identity_of(update_identity_address, &block.hash)
+                self.get_sub_identity_of(&identity_change.address, &block.hash)
                     .await?,
             ));
         }
-        Ok(update_identities)
+        Ok(identity_updates)
     }
 }

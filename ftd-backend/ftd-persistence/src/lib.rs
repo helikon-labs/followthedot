@@ -1,7 +1,7 @@
 use crate::neo4j::Neo4JStorage;
 use crate::postgres::PostgreSQLStorage;
 use ftd_config::Config;
-use ftd_types::substrate::event::Transfer;
+use ftd_types::substrate::event::{IdentityChange, Transfer};
 use ftd_types::substrate::{Block, Identity, SubIdentity};
 use lazy_static::lazy_static;
 use sqlx::{Postgres, Transaction};
@@ -73,7 +73,7 @@ impl Storage {
     pub async fn save_block(
         &self,
         block: Block,
-        update_identities: Vec<(String, Option<Identity>, Option<SubIdentity>)>,
+        identity_changes: Vec<(IdentityChange, Option<Identity>, Option<SubIdentity>)>,
     ) -> anyhow::Result<()> {
         let mut postgres_tx = self.postgres.begin_tx().await?;
         // let mut neo4j_tx = self.neo4j.begin_tx().await?;
@@ -88,14 +88,23 @@ impl Storage {
             self.save_transfer(&block, transfer, &mut postgres_tx)
                 .await?;
         }
-        for update_identity in update_identities.iter() {
+        for identity_change in identity_changes.iter() {
             let updated_identity = self
                 .postgres
                 .save_account_with_identity(
-                    update_identity.0.as_str(),
-                    &update_identity.1,
-                    &update_identity.2,
+                    identity_change.0.address.as_str(),
+                    &identity_change.1,
+                    &identity_change.2,
                     block.number,
+                    &mut postgres_tx,
+                )
+                .await?;
+            self.postgres
+                .save_identity_change(
+                    &block,
+                    &identity_change.0,
+                    &identity_change.1,
+                    &identity_change.2,
                     &mut postgres_tx,
                 )
                 .await?;
@@ -103,13 +112,15 @@ impl Storage {
                 if updated_identity {
                     self.neo4j
                         .save_account_with_identity(
-                            update_identity.0.as_str(),
-                            &update_identity.1,
-                            &update_identity.2,
+                            identity_change.0.address.as_str(),
+                            &identity_change.1,
+                            &identity_change.2,
                         )
                         .await?;
                 } else {
-                    self.neo4j.save_account(update_identity.0.as_str()).await?;
+                    self.neo4j
+                        .save_account(identity_change.0.address.as_str())
+                        .await?;
                 }
             }
         }

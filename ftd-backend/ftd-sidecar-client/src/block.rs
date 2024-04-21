@@ -1,6 +1,6 @@
 use crate::SidecarClient;
 use ftd_types::err::{BlockDataError, IdentityEventDataError, TransferEventDataError};
-use ftd_types::substrate::event::Transfer;
+use ftd_types::substrate::event::{IdentityChange, Transfer};
 use ftd_types::substrate::Block;
 use serde_json::Value;
 
@@ -86,16 +86,17 @@ fn get_transfer_events(json: &Value) -> anyhow::Result<Vec<Transfer>> {
     Ok(transfers)
 }
 
-fn get_update_identities_of(json: &Value) -> anyhow::Result<Vec<String>> {
-    let mut addresses = Vec::new();
+fn get_identity_changes(json: &Value) -> anyhow::Result<Vec<IdentityChange>> {
+    let mut identity_changes = Vec::new();
     let extrinsics = json["extrinsics"]
         .as_array()
         .ok_or(BlockDataError::ExtrinsicsNotFound)?;
-    for extrinsic in extrinsics.iter() {
+    let mut event_index = 0;
+    for (extrinsic_index, extrinsic) in extrinsics.iter().enumerate() {
         let events = extrinsic["events"]
             .as_array()
             .ok_or(BlockDataError::ExtrinsicEventsNotFound)?;
-        for event_json in events.iter() {
+        for (extrinsic_event_index, event_json) in events.iter().enumerate() {
             let module = event_json["method"]["pallet"]
                 .as_str()
                 .ok_or(BlockDataError::EventModuleNotFound)?;
@@ -106,11 +107,16 @@ fn get_update_identities_of(json: &Value) -> anyhow::Result<Vec<String>> {
                 match event.to_lowercase().as_str() {
                     "identityset" | "identitycleared" | "identitykilled" | "judgementgiven" => {
                         log::info!("Found {module}.{event}.");
-                        let adress = event_json["data"][0]
+                        let address = event_json["data"][0]
                             .as_str()
                             .ok_or(IdentityEventDataError::AccountNotFound)?
                             .to_string();
-                        addresses.push(adress);
+                        identity_changes.push(IdentityChange {
+                            extrinsic_index: extrinsic_index as u16,
+                            extrinsic_event_index: extrinsic_event_index as u16,
+                            event_index,
+                            address,
+                        });
                     }
                     "subidentityadded" | "subidentityremoved" | "subidentityrevoked" => {
                         log::info!("Found {module}.{event}.");
@@ -118,19 +124,24 @@ fn get_update_identities_of(json: &Value) -> anyhow::Result<Vec<String>> {
                             .as_str()
                             .ok_or(IdentityEventDataError::SubAccountNotFound)?
                             .to_string();
-                        let super_address = event_json["data"][1]
+                        let _super_address = event_json["data"][1]
                             .as_str()
                             .ok_or(IdentityEventDataError::SuperAccountNotFound)?
                             .to_string();
-                        addresses.push(super_address);
-                        addresses.push(sub_address);
+                        identity_changes.push(IdentityChange {
+                            extrinsic_index: extrinsic_index as u16,
+                            extrinsic_event_index: extrinsic_event_index as u16,
+                            event_index,
+                            address: sub_address,
+                        });
                     }
                     _ => (),
                 }
             }
+            event_index += 1;
         }
     }
-    Ok(addresses)
+    Ok(identity_changes)
 }
 
 impl SidecarClient {
@@ -165,7 +176,7 @@ impl SidecarClient {
         let author_address = get_author_address(json);
         let timestamp = self.get_block_timestamp(&hash).await?;
         let transfers = get_transfer_events(json)?;
-        let update_identities_of = get_update_identities_of(json)?;
+        let identity_changes = get_identity_changes(json)?;
         Ok(Block {
             timestamp,
             number,
@@ -173,7 +184,7 @@ impl SidecarClient {
             parent_hash,
             author_address,
             transfers,
-            update_identities_of,
+            identity_changes,
         })
     }
 

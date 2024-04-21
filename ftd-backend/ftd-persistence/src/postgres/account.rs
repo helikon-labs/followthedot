@@ -37,9 +37,9 @@ impl PostgreSQLStorage {
         let more_recent_identity_update_exists: (bool,) = sqlx::query_as(
             r#"
                 SELECT EXISTS(
-                    SELECT address
-                    FROM ftd_account
-                    WHERE address = $1 AND identity_updated_at_block_number >= $2
+                    SELECT id
+                    FROM ftd_identity_change
+                    WHERE address = $1 AND block_number >= $2
                 )
                 "#,
         )
@@ -47,17 +47,12 @@ impl PostgreSQLStorage {
         .bind(block_number as i64)
         .fetch_one(&self.connection_pool)
         .await?;
-        let identity_updated_at_block_number = if identity.is_some() || sub_identity.is_some() {
-            Some(block_number)
-        } else {
-            None
-        };
         let mut updated_identity = false;
         if !more_recent_identity_update_exists.0 && (identity.is_some() || sub_identity.is_some()) {
             let maybe_result: Option<(String,)> = sqlx::query_as(
                 r#"
-            INSERT INTO ftd_account (address, display, legal, web, riot, email, twitter, judgement, super_address, sub_display, identity_updated_at_block_number)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            INSERT INTO ftd_account (address, display, legal, web, riot, email, twitter, judgement, super_address, sub_display)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             ON CONFLICT (address) DO UPDATE
             SET
                 display = EXCLUDED.display,
@@ -69,7 +64,6 @@ impl PostgreSQLStorage {
                 judgement = EXCLUDED.judgement,
                 super_address = EXCLUDED.super_address,
                 sub_display = EXCLUDED.sub_display,
-                identity_updated_at_block_number = EXCLUDED.identity_updated_at_block_number,
                 updated_at = now()
             RETURNING address
             "#,
@@ -84,7 +78,6 @@ impl PostgreSQLStorage {
                 .bind(identity.as_ref().map(|identity| &identity.judgement))
                 .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.super_address))
                 .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.sub_display))
-                .bind(identity_updated_at_block_number.map(|n| n as i64))
                 .fetch_optional(&mut **tx)
                 .await?;
             updated_identity = maybe_result.is_some();

@@ -1,4 +1,4 @@
-use crate::substrate::event::Transfer;
+use crate::substrate::event::{IdentityChange, Transfer};
 use serde::{Deserialize, Serialize};
 
 pub mod event;
@@ -11,7 +11,7 @@ pub struct Block {
     pub parent_hash: String,
     pub author_address: Option<String>,
     pub transfers: Vec<Transfer>,
-    pub update_identities_of: Vec<String>,
+    pub identity_changes: Vec<IdentityChange>,
 }
 
 impl Block {
