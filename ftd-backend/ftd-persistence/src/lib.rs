@@ -4,7 +4,6 @@ use ftd_config::Config;
 use ftd_types::substrate::event::Transfer;
 use ftd_types::substrate::{Block, Identity, SubIdentity};
 use lazy_static::lazy_static;
-use neo4rs::Txn;
 use sqlx::{Postgres, Transaction};
 
 pub mod neo4j;
@@ -42,28 +41,32 @@ impl Storage {
         block: &Block,
         transfer: &Transfer,
         postgres_tx: &mut Transaction<'_, Postgres>,
-        neo4j_tx: &mut Txn,
     ) -> anyhow::Result<()> {
         // save accounts
         self.postgres
             .save_account(&transfer.from, postgres_tx)
             .await?;
-        self.neo4j.save_account(&transfer.from, neo4j_tx).await?;
         self.postgres
             .save_account(&transfer.to, postgres_tx)
             .await?;
-        self.neo4j.save_account(&transfer.to, neo4j_tx).await?;
         // save transfer
         self.postgres
             .save_transfer(block, transfer, postgres_tx)
             .await?;
-        let (volume, count) = self
-            .postgres
-            .update_transfer_volume(transfer, postgres_tx)
-            .await?;
-        self.neo4j
-            .save_transfer_summary(&transfer.from, &transfer.to, volume, count, neo4j_tx)
-            .await?;
+        let (volume, count) = if CONFIG.indexer.update_transfer_volume {
+            self.postgres
+                .update_transfer_volume(transfer, postgres_tx)
+                .await?
+        } else {
+            (0, 0)
+        };
+        if CONFIG.indexer.update_graph_db {
+            self.neo4j.save_account(&transfer.from).await?;
+            self.neo4j.save_account(&transfer.to).await?;
+            self.neo4j
+                .save_transfer_summary(&transfer.from, &transfer.to, volume, count)
+                .await?;
+        }
         Ok(())
     }
 
@@ -73,7 +76,7 @@ impl Storage {
         update_identities: Vec<(String, Option<Identity>, Option<SubIdentity>)>,
     ) -> anyhow::Result<()> {
         let mut postgres_tx = self.postgres.begin_tx().await?;
-        let mut neo4j_tx = self.neo4j.begin_tx().await?;
+        // let mut neo4j_tx = self.neo4j.begin_tx().await?;
 
         let block = if block.number < REDENOMINATION_BLOCK_NUMBER {
             block.convert_to_old_dot()
@@ -82,7 +85,7 @@ impl Storage {
         };
         self.postgres.save_block(&block, &mut postgres_tx).await?;
         for transfer in block.transfers.iter() {
-            self.save_transfer(&block, transfer, &mut postgres_tx, &mut neo4j_tx)
+            self.save_transfer(&block, transfer, &mut postgres_tx)
                 .await?;
         }
         for update_identity in update_identities.iter() {
@@ -96,23 +99,21 @@ impl Storage {
                     &mut postgres_tx,
                 )
                 .await?;
-            if updated_identity {
-                self.neo4j
-                    .save_account_with_identity(
-                        update_identity.0.as_str(),
-                        &update_identity.1,
-                        &update_identity.2,
-                        &mut neo4j_tx,
-                    )
-                    .await?;
-            } else {
-                self.neo4j
-                    .save_account(update_identity.0.as_str(), &mut neo4j_tx)
-                    .await?;
+            if CONFIG.indexer.update_graph_db {
+                if updated_identity {
+                    self.neo4j
+                        .save_account_with_identity(
+                            update_identity.0.as_str(),
+                            &update_identity.1,
+                            &update_identity.2,
+                        )
+                        .await?;
+                } else {
+                    self.neo4j.save_account(update_identity.0.as_str()).await?;
+                }
             }
         }
-
-        self.neo4j.commit_tx(neo4j_tx).await?;
+        // self.neo4j.commit_tx(neo4j_tx).await?;
         self.postgres.commit_tx(postgres_tx).await?;
         Ok(())
     }

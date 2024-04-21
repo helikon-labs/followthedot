@@ -3,22 +3,23 @@ use ftd_types::substrate::{Identity, SubIdentity};
 use neo4rs::{query, Txn};
 
 impl Neo4JStorage {
-    pub async fn begin_tx(&self) -> anyhow::Result<Txn> {
+    pub async fn _begin_tx(&self) -> anyhow::Result<Txn> {
         match self.graph.start_txn().await {
             Ok(tx) => Ok(tx),
             Err(err) => Err(err.into()),
         }
     }
 
-    pub async fn commit_tx(&self, tx: Txn) -> anyhow::Result<()> {
+    pub async fn _commit_tx(&self, tx: Txn) -> anyhow::Result<()> {
         match tx.commit().await {
             Ok(_) => Ok(()),
             Err(err) => Err(err.into()),
         }
     }
 
-    pub async fn save_account(&self, address: &str, tx: &mut Txn) -> anyhow::Result<()> {
-        tx.run(query("MERGE (a:Account {address: $address})").param("address", address))
+    pub async fn save_account(&self, address: &str) -> anyhow::Result<()> {
+        self.graph
+            .run(query("MERGE (a:Account {address: $address})").param("address", address))
             .await?;
         Ok(())
     }
@@ -28,9 +29,8 @@ impl Neo4JStorage {
         address: &str,
         identity: &Option<Identity>,
         sub_identity: &Option<SubIdentity>,
-        tx: &mut Txn,
     ) -> anyhow::Result<()> {
-        self.save_account(address, tx).await?;
+        self.save_account(address).await?;
         let (display, legal, web, riot, email, twitter, judgement) =
             if let Some(identity) = identity {
                 (
@@ -50,7 +50,7 @@ impl Neo4JStorage {
         } else {
             None
         };
-        tx.run(
+        self.graph.run(
             query(
                 r#"
                     MATCH (a:Account)
@@ -71,29 +71,31 @@ impl Neo4JStorage {
         .await?;
         if let Some(sub_identity) = sub_identity {
             if let Some(super_address) = &sub_identity.super_address {
-                self.save_account(super_address, tx).await?;
-                tx.run(
-                    query(
-                        r#"
+                self.save_account(super_address).await?;
+                self.graph
+                    .run(
+                        query(
+                            r#"
                             MATCH (a:Account {address: $address})-[s:SUB_OF]->(:Account)
                             DELETE s
                             "#,
+                        )
+                        .param("address", address),
                     )
-                    .param("address", address),
-                )
-                .await?;
-                tx.run(
-                    query(
-                        r#"
+                    .await?;
+                self.graph
+                    .run(
+                        query(
+                            r#"
                             MATCH (a:Account {address: $address})
                             MATCH (b:Account {address: $super_address})
                             MERGE (a)-[:SUB_OF]->(b)
                             "#,
+                        )
+                        .param("address", address)
+                        .param("super_address", super_address.as_str()),
                     )
-                    .param("address", address)
-                    .param("super_address", super_address.as_str()),
-                )
-                .await?;
+                    .await?;
             }
         }
         Ok(())

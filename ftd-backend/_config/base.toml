@@ -35,6 +35,8 @@ token_format_decimal_points = 4
 start_block_number = 12_000_000
 # end_block_number = 12_000_500
 chunk_size = 100
+update_transfer_volume = false
+update_graph_db = false
 
 [metrics]
 host = "127.0.0.1"
