@@ -28,6 +28,15 @@ impl Storage {
         })
     }
 
+    pub async fn get_max_block_number_in_range_inclusive(
+        &self,
+        range: (u64, u64),
+    ) -> anyhow::Result<i64> {
+        self.postgres
+            .get_max_block_number_in_range_inclusive(range)
+            .await
+    }
+
     pub async fn get_max_block_number(&self) -> anyhow::Result<i64> {
         self.postgres.get_max_block_number().await
     }

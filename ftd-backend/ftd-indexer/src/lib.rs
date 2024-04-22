@@ -28,7 +28,22 @@ impl Service for Indexer {
 
         let mut block_number =
             if let Some(config_start_block_number) = CONFIG.indexer.start_block_number {
-                config_start_block_number
+                log::info!("Config start block number {config_start_block_number}.");
+                if let Some(config_end_block_number) = CONFIG.indexer.end_block_number {
+                    let block_number = storage
+                        .get_max_block_number_in_range_inclusive((
+                            config_start_block_number,
+                            config_end_block_number,
+                        ))
+                        .await?;
+                    if block_number > 0 {
+                        (block_number + 1) as u64
+                    } else {
+                        config_start_block_number
+                    }
+                } else {
+                    config_start_block_number
+                }
             } else {
                 let db_max_block_number = storage.get_max_block_number().await?;
                 if db_max_block_number < 0 {
@@ -37,9 +52,11 @@ impl Service for Indexer {
                     (db_max_block_number as u64) + 1
                 }
             };
+        log::info!("Start @ block number {block_number}.");
         loop {
             let end_block_number =
                 if let Some(config_end_block_number) = CONFIG.indexer.end_block_number {
+                    log::info!("End @ block number {config_end_block_number}.");
                     config_end_block_number
                 } else {
                     let head = sidecar.get_head().await?;

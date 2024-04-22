@@ -45,9 +45,25 @@ impl PostgreSQLStorage {
     pub async fn get_max_block_number(&self) -> anyhow::Result<i64> {
         let max_block_number: (i64,) = sqlx::query_as(
             r#"
-            SELECT COALESCE(MAX(number), -1) from ftd_block
+            SELECT COALESCE(MAX(number), -1) FROM ftd_block
             "#,
         )
+        .fetch_one(&self.connection_pool)
+        .await?;
+        Ok(max_block_number.0)
+    }
+
+    pub async fn get_max_block_number_in_range_inclusive(
+        &self,
+        range: (u64, u64),
+    ) -> anyhow::Result<i64> {
+        let max_block_number: (i64,) = sqlx::query_as(
+            r#"
+            SELECT COALESCE(MAX(number), -1) FROM ftd_block WHERE number >= $1 AND number <= $2
+            "#,
+        )
+        .bind(range.0 as i64)
+        .bind(range.1 as i64)
         .fetch_one(&self.connection_pool)
         .await?;
         Ok(max_block_number.0)
