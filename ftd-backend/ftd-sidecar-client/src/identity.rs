@@ -32,7 +32,11 @@ fn get_raw_from_info(info: &Value, key: &str) -> anyhow::Result<Option<String>> 
     match maybe_field_raw {
         Some(field_raw) => {
             let raw_bytes: &[u8] = &hex::decode(field_raw.trim_start_matches("0x"))?;
-            let raw: &str = std::str::from_utf8(raw_bytes)?;
+            let raw = if let Ok(raw) = std::str::from_utf8(raw_bytes) {
+                raw.to_string()
+            } else {
+                field_raw.to_string()
+            };
             Ok(Some(raw.to_string()))
         }
         None => Ok(None),
