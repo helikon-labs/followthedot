@@ -17,6 +17,7 @@ pub struct Block {
 impl Block {
     pub fn convert_to_old_dot(&self) -> Block {
         let mut block = self.clone();
+        block.transfers = Vec::new();
         for transfer in self.transfers.iter() {
             let mut transfer = transfer.clone();
             transfer.amount /= 100;
