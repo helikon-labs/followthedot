@@ -2,14 +2,14 @@ use crate::neo4j::Neo4JStorage;
 use neo4rs::query;
 
 impl Neo4JStorage {
-    pub async fn save_transfer_summary(
+    pub async fn _save_transfer_summary(
         &self,
         from: &str,
         to: &str,
         volume: u128,
         count: u32,
     ) -> anyhow::Result<()> {
-        self.graph
+        self._graph
             .run(
                 query(
                     r#"

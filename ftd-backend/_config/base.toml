@@ -24,7 +24,7 @@ database_name = "neo4j"
 [substrate]
 chain = "polkadot"
 chain_display = "Polkadot"
-sidecar_url = "http://104.247.178.10:21000"
+sidecar_url = "http://104.247.178.10:21001"
 connection_timeout_seconds = 15
 request_timeout_seconds = 15
 token_ticker = "DOT"
@@ -35,9 +35,8 @@ token_format_decimal_points = 4
 start_block_number = 12_000_000
 # end_block_number = 12_000_500
 chunk_size = 100
-update_transfer_volume = false
-update_graph_db = false
 
 [metrics]
 host = "127.0.0.1"
 indexer_port = 11000
+transfer_volume_updater_port = 11010

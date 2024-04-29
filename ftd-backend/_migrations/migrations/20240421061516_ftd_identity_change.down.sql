@@ -1,1 +1,1 @@
--- Add down migration script here
+DROP TABLE ftd_identity_change CASCADE;

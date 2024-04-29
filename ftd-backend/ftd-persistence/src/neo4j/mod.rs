@@ -5,7 +5,7 @@ pub mod account;
 pub mod transfer;
 
 pub(crate) struct Neo4JStorage {
-    graph: Graph,
+    _graph: Graph,
 }
 
 impl Neo4JStorage {
@@ -20,6 +20,6 @@ impl Neo4JStorage {
             .build()?;
         let graph = Graph::connect(config).await?;
         log::info!("Neo4J connection established.");
-        Ok(Neo4JStorage { graph })
+        Ok(Neo4JStorage { _graph: graph })
     }
 }

@@ -17,15 +17,44 @@ lazy_static! {
 
 pub struct Storage {
     postgres: PostgreSQLStorage,
-    neo4j: Neo4JStorage,
+    _neo4j: Neo4JStorage,
 }
 
 impl Storage {
     pub async fn new() -> anyhow::Result<Storage> {
         Ok(Self {
             postgres: PostgreSQLStorage::new(&CONFIG).await?,
-            neo4j: Neo4JStorage::new(&CONFIG).await?,
+            _neo4j: Neo4JStorage::new(&CONFIG).await?,
         })
+    }
+
+    pub async fn get_transfer_volume_updater_last_processed_transfer_id(
+        &self,
+    ) -> anyhow::Result<i32> {
+        self.postgres
+            .get_transfer_volume_updater_last_processed_transfer_id()
+            .await
+    }
+
+    pub async fn set_transfer_volume_updater_last_processed_transfer_id(
+        &self,
+        id: i32,
+    ) -> anyhow::Result<()> {
+        self.postgres
+            .set_transfer_volume_updater_last_processed_transfer_id(id)
+            .await
+    }
+
+    pub async fn get_max_transfer_id(&self) -> anyhow::Result<i32> {
+        self.postgres.get_max_transfer_id().await
+    }
+
+    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Transfer> {
+        self.postgres.get_transfer_by_id(id).await
+    }
+
+    pub async fn update_transfer_volume(&self, transfer: &Transfer) -> anyhow::Result<(u128, u32)> {
+        self.postgres.update_transfer_volume(transfer).await
     }
 
     pub async fn get_max_block_number_in_range_inclusive(
@@ -62,20 +91,6 @@ impl Storage {
         self.postgres
             .save_transfer(block, transfer, postgres_tx)
             .await?;
-        let (volume, count) = if CONFIG.indexer.update_transfer_volume {
-            self.postgres
-                .update_transfer_volume(transfer, postgres_tx)
-                .await?
-        } else {
-            (0, 0)
-        };
-        if CONFIG.indexer.update_graph_db {
-            self.neo4j.save_account(&transfer.from).await?;
-            self.neo4j.save_account(&transfer.to).await?;
-            self.neo4j
-                .save_transfer_summary(&transfer.from, &transfer.to, volume, count)
-                .await?;
-        }
         Ok(())
     }
 
@@ -85,8 +100,6 @@ impl Storage {
         identity_changes: Vec<(IdentityChange, Option<Identity>, Option<SubIdentity>)>,
     ) -> anyhow::Result<()> {
         let mut postgres_tx = self.postgres.begin_tx().await?;
-        // let mut neo4j_tx = self.neo4j.begin_tx().await?;
-
         let block = if block.number < REDENOMINATION_BLOCK_NUMBER {
             block.convert_to_old_dot()
         } else {
@@ -98,8 +111,7 @@ impl Storage {
                 .await?;
         }
         for identity_change in identity_changes.iter() {
-            let updated_identity = self
-                .postgres
+            self.postgres
                 .save_account_with_identity(
                     identity_change.0.address.as_str(),
                     &identity_change.1,
@@ -117,23 +129,7 @@ impl Storage {
                     &mut postgres_tx,
                 )
                 .await?;
-            if CONFIG.indexer.update_graph_db {
-                if updated_identity {
-                    self.neo4j
-                        .save_account_with_identity(
-                            identity_change.0.address.as_str(),
-                            &identity_change.1,
-                            &identity_change.2,
-                        )
-                        .await?;
-                } else {
-                    self.neo4j
-                        .save_account(identity_change.0.address.as_str())
-                        .await?;
-                }
-            }
         }
-        // self.neo4j.commit_tx(neo4j_tx).await?;
         self.postgres.commit_tx(postgres_tx).await?;
         Ok(())
     }

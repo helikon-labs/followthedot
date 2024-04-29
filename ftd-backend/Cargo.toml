@@ -7,6 +7,7 @@ members = [
     "ftd-persistence",
     "ftd-service",
     "ftd-sidecar-client",
+    "ftd-transfer-volume-updater",
     "ftd-types",
 ]
 resolver = "2"
