@@ -1,24 +1,10 @@
-use crate::neo4j::Neo4JStorage;
+use super::Neo4JStorage;
 use ftd_types::substrate::{Identity, SubIdentity};
-use neo4rs::{query, Txn};
+use neo4rs::query;
 
 impl Neo4JStorage {
-    pub async fn _begin_tx(&self) -> anyhow::Result<Txn> {
-        match self._graph.start_txn().await {
-            Ok(tx) => Ok(tx),
-            Err(err) => Err(err.into()),
-        }
-    }
-
-    pub async fn _commit_tx(&self, tx: Txn) -> anyhow::Result<()> {
-        match tx.commit().await {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.into()),
-        }
-    }
-
-    pub async fn _save_account(&self, address: &str) -> anyhow::Result<()> {
-        self._graph
+    pub async fn save_account(&self, address: &str) -> anyhow::Result<()> {
+        self.graph
             .run(query("MERGE (a:Account {address: $address})").param("address", address))
             .await?;
         Ok(())
@@ -30,7 +16,7 @@ impl Neo4JStorage {
         identity: &Option<Identity>,
         sub_identity: &Option<SubIdentity>,
     ) -> anyhow::Result<()> {
-        self._save_account(address).await?;
+        self.save_account(address).await?;
         let (display, legal, web, riot, email, twitter, judgement) =
             if let Some(identity) = identity {
                 (
@@ -50,7 +36,7 @@ impl Neo4JStorage {
         } else {
             None
         };
-        self._graph.run(
+        self.graph.run(
             query(
                 r#"
                     MATCH (a:Account)
@@ -71,8 +57,8 @@ impl Neo4JStorage {
         .await?;
         if let Some(sub_identity) = sub_identity {
             if let Some(super_address) = &sub_identity.super_address {
-                self._save_account(super_address).await?;
-                self._graph
+                self.save_account(super_address).await?;
+                self.graph
                     .run(
                         query(
                             r#"
@@ -83,7 +69,7 @@ impl Neo4JStorage {
                         .param("address", address),
                     )
                     .await?;
-                self._graph
+                self.graph
                     .run(
                         query(
                             r#"

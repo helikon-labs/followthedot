@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ftd_config::Config;
-use ftd_persistence::Storage;
+use ftd_persistence::relational::RelationalStorage;
 use ftd_service::Service;
 use lazy_static::lazy_static;
 
@@ -24,7 +24,7 @@ impl Service for TransferVolumeUpdater {
 
     async fn run(&'static self) -> anyhow::Result<()> {
         log::info!("Transfer volume updater started.");
-        let storage = Storage::new().await?;
+        let storage = RelationalStorage::new().await?;
         let sleep_seconds = CONFIG.common.recovery_retry_seconds;
         loop {
             let last_processed_id = storage

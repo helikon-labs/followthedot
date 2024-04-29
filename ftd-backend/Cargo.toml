@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "ftd-config",
+    "ftd-graph-updater",
     "ftd-indexer",
     "ftd-logging",
     "ftd-metrics",
@@ -17,6 +18,7 @@ resolver = "2"
 [workspace.dependencies]
 actix-web = "4.4"
 anyhow = "1"
+async-recursion = "1.0"
 async-trait = "0.1"
 chrono = "0.4"
 config = "0.14"

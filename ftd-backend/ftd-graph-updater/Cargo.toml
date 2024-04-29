@@ -1,0 +1,20 @@
+[package]
+name = "ftd-graph-updater"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77.2"
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+config = { workspace = true }
+ftd-config = { path = "../ftd-config" }
+ftd-logging = { path = "../ftd-logging" }
+ftd-metrics = { path = "../ftd-metrics" }
+ftd-persistence = { path = "../ftd-persistence" }
+ftd-service = { path = "../ftd-service" }
+ftd-types = { path = "../ftd-types" }
+lazy_static = { workspace = true }
+log = { workspace = true }
+once_cell = { workspace = true }
+tokio = { workspace = true, features = ["full"] }

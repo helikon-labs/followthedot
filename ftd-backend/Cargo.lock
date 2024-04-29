@@ -323,6 +323,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-recursion"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b43422f69d8ff38f95f1b2bb76517c91589a924d1559a0e935d7c8ce0274c11"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.60",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.80"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -925,6 +936,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "ftd-graph-updater"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "config",
+ "ftd-config",
+ "ftd-logging",
+ "ftd-metrics",
+ "ftd-persistence",
+ "ftd-service",
+ "ftd-types",
+ "lazy_static",
+ "log",
+ "once_cell",
+ "tokio",
+]
+
+[[package]]
 name = "ftd-indexer"
 version = "0.1.0"
 dependencies = [
@@ -971,6 +1001,7 @@ name = "ftd-persistence"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-recursion",
  "chrono",
  "ftd-config",
  "ftd-types",

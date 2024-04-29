@@ -1,11 +1,12 @@
 use ftd_config::Config;
-use neo4rs::{ConfigBuilder, Graph};
+use neo4rs::{ConfigBuilder, Graph, Txn};
 
 pub mod account;
+pub mod state;
 pub mod transfer;
 
 pub(crate) struct Neo4JStorage {
-    _graph: Graph,
+    graph: Graph,
 }
 
 impl Neo4JStorage {
@@ -20,6 +21,20 @@ impl Neo4JStorage {
             .build()?;
         let graph = Graph::connect(config).await?;
         log::info!("Neo4J connection established.");
-        Ok(Neo4JStorage { _graph: graph })
+        Ok(Neo4JStorage { graph })
+    }
+
+    pub async fn _begin_tx(&self) -> anyhow::Result<Txn> {
+        match self.graph.start_txn().await {
+            Ok(tx) => Ok(tx),
+            Err(err) => Err(err.into()),
+        }
+    }
+
+    pub async fn _commit_tx(&self, tx: Txn) -> anyhow::Result<()> {
+        match tx.commit().await {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err.into()),
+        }
     }
 }

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use ftd_config::Config;
-use ftd_persistence::Storage;
+use ftd_persistence::relational::RelationalStorage;
 use ftd_service::Service;
 use ftd_sidecar_client::SidecarClient;
 use lazy_static::lazy_static;
@@ -23,7 +23,7 @@ impl Service for Indexer {
 
     async fn run(&'static self) -> anyhow::Result<()> {
         log::info!("Indexer started.");
-        let storage = Storage::new().await?;
+        let storage = RelationalStorage::new().await?;
         let sidecar = SidecarClient::new(&CONFIG)?;
 
         let mut block_number =

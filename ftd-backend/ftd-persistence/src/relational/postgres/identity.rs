@@ -1,4 +1,4 @@
-use crate::postgres::PostgreSQLStorage;
+use super::PostgreSQLStorage;
 use ftd_types::substrate::event::IdentityChange;
 use ftd_types::substrate::{Block, Identity, SubIdentity};
 use sqlx::{Postgres, Transaction};
