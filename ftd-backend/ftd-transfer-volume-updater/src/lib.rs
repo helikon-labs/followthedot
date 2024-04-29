@@ -38,12 +38,15 @@ impl Service for TransferVolumeUpdater {
                     if id == 0 {
                         continue;
                     }
-                    log::info!("Process transfers {id}.");
-                    let transfer = storage.get_transfer_by_id(id).await?;
-                    storage.update_transfer_volume(&transfer).await?;
-                    storage
-                        .set_transfer_volume_updater_last_processed_transfer_id(id)
-                        .await?;
+                    log::info!("Process transfer {id}.");
+                    if let Some(transfer) = storage.get_transfer_by_id(id).await? {
+                        storage.update_transfer_volume(&transfer).await?;
+                        storage
+                            .set_transfer_volume_updater_last_processed_transfer_id(id)
+                            .await?;
+                    } else {
+                        log::warn!("Transfer id {id} not found.");
+                    }
                 }
             }
             log::info!("Completed processing. Sleep for {sleep_seconds} seconds.");

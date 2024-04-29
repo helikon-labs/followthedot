@@ -49,7 +49,7 @@ impl Storage {
         self.postgres.get_max_transfer_id().await
     }
 
-    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Transfer> {
+    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Option<Transfer>> {
         self.postgres.get_transfer_by_id(id).await
     }
 

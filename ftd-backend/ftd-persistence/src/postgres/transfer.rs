@@ -43,8 +43,8 @@ impl PostgreSQLStorage {
         Ok(result.0)
     }
 
-    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Transfer> {
-        let result: (i32, i32, i32, String, String, String) = sqlx::query_as(
+    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Option<Transfer>> {
+        let result: Option<(i32, i32, i32, String, String, String)> = sqlx::query_as(
             r#"
             SELECT extrinsic_index, extrinsic_event_index, event_index, from_address, to_address, amount
             FROM ftd_transfer
@@ -52,15 +52,19 @@ impl PostgreSQLStorage {
             "#,
         )
             .bind(id)
-            .fetch_one(&self.connection_pool)
+            .fetch_optional(&self.connection_pool)
             .await?;
-        Ok(Transfer {
-            extrinsic_index: result.0 as u16,
-            extrinsic_event_index: result.1 as u16,
-            event_index: result.2 as u16,
-            from: result.3.clone(),
-            to: result.4.clone(),
-            amount: result.5.parse::<u128>()?,
-        })
+        if let Some(row) = result {
+            Ok(Some(Transfer {
+                extrinsic_index: row.0 as u16,
+                extrinsic_event_index: row.1 as u16,
+                event_index: row.2 as u16,
+                from: row.3.clone(),
+                to: row.4.clone(),
+                amount: row.5.parse::<u128>()?,
+            }))
+        } else {
+            Ok(None)
+        }
     }
 }
