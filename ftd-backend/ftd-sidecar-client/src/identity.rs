@@ -107,8 +107,11 @@ impl SidecarClient {
         let super_address = value[0].as_str().map(|str| str.to_string());
         let sub_display = if let Some(sub_display_raw) = value[1]["raw"].as_str() {
             let raw_bytes: &[u8] = &hex::decode(sub_display_raw.trim_start_matches("0x"))?;
-            let raw: &str = std::str::from_utf8(raw_bytes)?;
-            Some(raw.to_string())
+            if let Ok(raw) = std::str::from_utf8(raw_bytes) {
+                Some(raw.to_string())
+            } else {
+                Some(sub_display_raw.to_string())
+            }
         } else {
             None
         };
