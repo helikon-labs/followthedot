@@ -21,7 +21,9 @@ impl PostgreSQLStorage {
     ) -> anyhow::Result<()> {
         sqlx::query(
             r#"
-            UPDATE ftd_transfer_volume_updater_state SET last_processed_transfer_id = $1 WHERE id = 1
+            UPDATE ftd_transfer_volume_updater_state
+            SET last_processed_transfer_id = $1, updated_at = now()
+            WHERE id = 1
             "#,
         )
             .bind(id)

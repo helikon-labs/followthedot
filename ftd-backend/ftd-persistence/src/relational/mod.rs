@@ -46,6 +46,17 @@ impl RelationalStorage {
         self.postgres.update_transfer_volume(transfer).await
     }
 
+    pub async fn get_max_identity_change_id(&self) -> anyhow::Result<i32> {
+        self.postgres.get_max_identity_change_id().await
+    }
+
+    pub async fn get_identity_change_by_id(
+        &self,
+        id: i32,
+    ) -> anyhow::Result<Option<(IdentityChange, Identity, SubIdentity)>> {
+        self.postgres.get_identity_change_by_id(id).await
+    }
+
     pub async fn get_max_block_number_in_range_inclusive(
         &self,
         range: (u64, u64),

@@ -27,4 +27,14 @@ impl Neo4JStorage {
             .await?;
         Ok(())
     }
+
+    pub async fn update_last_processed_identity_change_id(&self, id: i32) -> anyhow::Result<()> {
+        self.graph
+            .run(
+                query("MATCH (s:State {id: 1}) SET s.lastProcessedIdentityChangeId = $id")
+                    .param("id", id),
+            )
+            .await?;
+        Ok(())
+    }
 }

@@ -56,7 +56,14 @@ impl SidecarClient {
             .await?
             .json::<Value>()
             .await?;
-        let value = &json["value"];
+        let mut value = &json["value"];
+        if let Some(array) = value.as_array() {
+            if let Some(array_element) = array.get(0) {
+                value = array_element;
+            } else {
+                return Ok(None);
+            }
+        }
         if value.is_null() || !value.is_object() {
             return Ok(None);
         }

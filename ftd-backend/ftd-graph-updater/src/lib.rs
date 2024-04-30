@@ -14,6 +14,70 @@ lazy_static! {
 #[derive(Default)]
 pub struct GraphUpdater;
 
+impl GraphUpdater {
+    async fn process_identity_changes(
+        &self,
+        relational_storage: &RelationalStorage,
+        graph_storage: &GraphStorage,
+    ) -> anyhow::Result<()> {
+        let state = graph_storage.get_state().await?;
+        let first_identity_change_id = state.last_processed_identity_change_id + 1;
+        let max_identity_change_id = relational_storage.get_max_identity_change_id().await?;
+        if first_identity_change_id <= max_identity_change_id {
+            log::info!(
+                "Process identity changes {first_identity_change_id}-{max_identity_change_id}."
+            );
+            for id in first_identity_change_id..=max_identity_change_id {
+                if let Some(identity_change) =
+                    relational_storage.get_identity_change_by_id(id).await?
+                {
+                    log::info!("Process identity change {id}.");
+                    graph_storage
+                        .save_account_with_identity(
+                            &identity_change.0,
+                            &identity_change.1,
+                            &identity_change.2,
+                        )
+                        .await?;
+                } else {
+                    log::warn!("Identity change id {id} not found.");
+                }
+            }
+        }
+        graph_storage
+            .update_last_processed_identity_change_id(max_identity_change_id)
+            .await?;
+        log::info!("Max identity change id {max_identity_change_id} is processed.");
+        Ok(())
+    }
+
+    async fn process_transfers(
+        &self,
+        relational_storage: &RelationalStorage,
+        graph_storage: &GraphStorage,
+    ) -> anyhow::Result<()> {
+        let state = graph_storage.get_state().await?;
+        let first_transfer_id = state.last_processed_transfer_id + 1;
+        let max_transfer_id = relational_storage.get_max_transfer_id().await?;
+        if first_transfer_id <= max_transfer_id {
+            log::info!("Process transfers {first_transfer_id}-{max_transfer_id}.");
+            for id in first_transfer_id..=max_transfer_id {
+                if let Some(transfer) = relational_storage.get_transfer_by_id(id).await? {
+                    log::info!("Process transfer {id}.");
+                    graph_storage.save_transfer(&transfer).await?;
+                } else {
+                    log::warn!("Transfer id {id} not found.");
+                }
+            }
+        }
+        graph_storage
+            .update_last_processed_transfer_id(max_transfer_id)
+            .await?;
+        log::info!("Max transfer id {max_transfer_id} is processed.");
+        Ok(())
+    }
+}
+
 #[async_trait(? Send)]
 impl Service for GraphUpdater {
     fn get_metrics_server_addr() -> (&'static str, u16) {
@@ -29,27 +93,10 @@ impl Service for GraphUpdater {
         let graph_storage = GraphStorage::new().await?;
         let sleep_seconds = CONFIG.common.recovery_retry_seconds;
         loop {
-            let state = graph_storage.get_state().await?;
-            // process transfers
-            let first_transfer_id = state.last_processed_transfer_id + 1;
-            let max_transfer_id = relational_storage.get_max_transfer_id().await?;
-            if first_transfer_id <= max_transfer_id {
-                log::info!("Process transfers {first_transfer_id}-{max_transfer_id}.");
-                for id in first_transfer_id..=max_transfer_id {
-                    if let Some(transfer) = relational_storage.get_transfer_by_id(id).await? {
-                        log::info!("Process transfer {id}.");
-                        graph_storage.save_transfer(&transfer).await?;
-                    } else {
-                        log::warn!("Transfer id {id} not found.");
-                    }
-                }
-                graph_storage
-                    .update_last_processed_transfer_id(max_transfer_id)
-                    .await?;
-            }
-            log::info!("Max transfer id {max_transfer_id} is processed.");
-            // process identity changes
-
+            self.process_identity_changes(&relational_storage, &graph_storage)
+                .await?;
+            self.process_transfers(&relational_storage, &graph_storage)
+                .await?;
             log::info!("Completed processing. Sleep for {sleep_seconds} seconds.");
             tokio::time::sleep(std::time::Duration::from_secs(sleep_seconds)).await;
         }
