@@ -1,7 +1,7 @@
 use crate::graph::neo4j::Neo4JStorage;
 use async_recursion::async_recursion;
 use ftd_types::graph::GraphUpdaterState;
-use neo4rs::{query, Node};
+use neo4rs::{query, Node, Txn};
 
 impl Neo4JStorage {
     #[async_recursion]
@@ -18,23 +18,28 @@ impl Neo4JStorage {
         })
     }
 
-    pub async fn update_last_processed_transfer_id(&self, id: i32) -> anyhow::Result<()> {
-        self.graph
-            .run(
-                query("MATCH (s:State {id: 1}) SET s.lastProcessedTransferId = $id")
-                    .param("id", id),
-            )
-            .await?;
+    pub async fn update_last_processed_transfer_id(
+        &self,
+        tx: &mut Txn,
+        id: i32,
+    ) -> anyhow::Result<()> {
+        tx.run(
+            query("MATCH (s:State {id: 1}) SET s.lastProcessedTransferId = $id").param("id", id),
+        )
+        .await?;
         Ok(())
     }
 
-    pub async fn update_last_processed_identity_change_id(&self, id: i32) -> anyhow::Result<()> {
-        self.graph
-            .run(
-                query("MATCH (s:State {id: 1}) SET s.lastProcessedIdentityChangeId = $id")
-                    .param("id", id),
-            )
-            .await?;
+    pub async fn update_last_processed_identity_change_id(
+        &self,
+        tx: &mut Txn,
+        id: i32,
+    ) -> anyhow::Result<()> {
+        tx.run(
+            query("MATCH (s:State {id: 1}) SET s.lastProcessedIdentityChangeId = $id")
+                .param("id", id),
+        )
+        .await?;
         Ok(())
     }
 }

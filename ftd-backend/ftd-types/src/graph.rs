@@ -10,6 +10,6 @@ pub struct GraphUpdaterState {
 pub struct TransferVolume {
     pub from: String,
     pub to: String,
-    pub count: u128,
-    pub volume: u32,
+    pub count: u32,
+    pub volume: u128,
 }

@@ -1,23 +1,23 @@
 use super::Neo4JStorage;
 use ftd_types::substrate::{Identity, SubIdentity};
-use neo4rs::query;
+use neo4rs::{query, Txn};
 
 impl Neo4JStorage {
-    pub async fn save_account(&self, address: &str) -> anyhow::Result<()> {
-        self.graph
-            .run(query("MERGE (a:Account {address: $address})").param("address", address))
+    pub async fn save_account(&self, tx: &mut Txn, address: &str) -> anyhow::Result<()> {
+        tx.run(query("MERGE (a:Account {address: $address})").param("address", address))
             .await?;
         Ok(())
     }
 
     pub async fn save_account_with_identity(
         &self,
+        tx: &mut Txn,
         address: &str,
         identity: &Identity,
         sub_identity: &SubIdentity,
     ) -> anyhow::Result<()> {
-        self.save_account(address).await?;
-        self.graph.run(
+        self.save_account(tx, address).await?;
+        tx.run(
             query(
                 r#"
                     MATCH (a:Account)
@@ -37,31 +37,29 @@ impl Neo4JStorage {
         )
         .await?;
         if let Some(super_address) = sub_identity.super_address.as_deref() {
-            self.save_account(super_address).await?;
-            self.graph
-                .run(
-                    query(
-                        r#"
+            self.save_account(tx, super_address).await?;
+            tx.run(
+                query(
+                    r#"
                             MATCH (a:Account {address: $address})-[s:SUB_OF]->(:Account)
                             DELETE s
                             "#,
-                    )
-                    .param("address", address),
                 )
-                .await?;
-            self.graph
-                .run(
-                    query(
-                        r#"
+                .param("address", address),
+            )
+            .await?;
+            tx.run(
+                query(
+                    r#"
                             MATCH (a:Account {address: $address})
                             MATCH (b:Account {address: $super_address})
                             MERGE (a)-[:SUB_OF]->(b)
                             "#,
-                    )
-                    .param("address", address)
-                    .param("super_address", super_address),
                 )
-                .await?;
+                .param("address", address)
+                .param("super_address", super_address),
+            )
+            .await?;
         }
         Ok(())
     }

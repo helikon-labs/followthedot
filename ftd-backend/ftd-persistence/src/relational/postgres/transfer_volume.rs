@@ -26,9 +26,9 @@ impl PostgreSQLStorage {
             WHERE id = 1
             "#,
         )
-            .bind(id)
-            .execute(&self.connection_pool)
-            .await?;
+        .bind(id)
+        .execute(&self.connection_pool)
+        .await?;
         Ok(())
     }
 

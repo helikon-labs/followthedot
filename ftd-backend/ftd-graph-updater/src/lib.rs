@@ -28,12 +28,14 @@ impl GraphUpdater {
                 "Process identity changes {first_identity_change_id}-{max_identity_change_id}."
             );
             for id in first_identity_change_id..=max_identity_change_id {
+                let mut tx = graph_storage.begin_tx().await?;
                 if let Some(identity_change) =
                     relational_storage.get_identity_change_by_id(id).await?
                 {
                     log::info!("Process identity change {id}.");
                     graph_storage
                         .save_account_with_identity(
+                            &mut tx,
                             &identity_change.0,
                             &identity_change.1,
                             &identity_change.2,
@@ -42,11 +44,12 @@ impl GraphUpdater {
                 } else {
                     log::warn!("Identity change id {id} not found.");
                 }
+                graph_storage
+                    .update_last_processed_identity_change_id(&mut tx, id)
+                    .await?;
+                graph_storage.commit_tx(tx).await?;
             }
         }
-        graph_storage
-            .update_last_processed_identity_change_id(max_identity_change_id)
-            .await?;
         log::info!("Max identity change id {max_identity_change_id} is processed.");
         Ok(())
     }
@@ -62,17 +65,19 @@ impl GraphUpdater {
         if first_transfer_id <= max_transfer_id {
             log::info!("Process transfers {first_transfer_id}-{max_transfer_id}.");
             for id in first_transfer_id..=max_transfer_id {
+                let mut tx = graph_storage.begin_tx().await?;
                 if let Some(transfer) = relational_storage.get_transfer_by_id(id).await? {
                     log::info!("Process transfer {id}.");
-                    graph_storage.save_transfer(&transfer).await?;
+                    graph_storage.save_transfer(&mut tx, &transfer).await?;
                 } else {
                     log::warn!("Transfer id {id} not found.");
                 }
+                graph_storage
+                    .update_last_processed_transfer_id(&mut tx, id)
+                    .await?;
+                graph_storage.commit_tx(tx).await?;
             }
         }
-        graph_storage
-            .update_last_processed_transfer_id(max_transfer_id)
-            .await?;
         log::info!("Max transfer id {max_transfer_id} is processed.");
         Ok(())
     }

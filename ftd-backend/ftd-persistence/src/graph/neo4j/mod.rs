@@ -24,14 +24,14 @@ impl Neo4JStorage {
         Ok(Neo4JStorage { graph })
     }
 
-    pub async fn _begin_tx(&self) -> anyhow::Result<Txn> {
+    pub async fn begin_tx(&self) -> anyhow::Result<Txn> {
         match self.graph.start_txn().await {
             Ok(tx) => Ok(tx),
             Err(err) => Err(err.into()),
         }
     }
 
-    pub async fn _commit_tx(&self, tx: Txn) -> anyhow::Result<()> {
+    pub async fn commit_tx(&self, tx: Txn) -> anyhow::Result<()> {
         match tx.commit().await {
             Ok(_) => Ok(()),
             Err(err) => Err(err.into()),

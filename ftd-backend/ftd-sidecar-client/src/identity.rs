@@ -58,7 +58,7 @@ impl SidecarClient {
             .await?;
         let mut value = &json["value"];
         if let Some(array) = value.as_array() {
-            if let Some(array_element) = array.get(0) {
+            if let Some(array_element) = array.first() {
                 value = array_element;
             } else {
                 return Ok(None);
