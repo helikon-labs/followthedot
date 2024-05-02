@@ -1,7 +1,8 @@
 use crate::SidecarClient;
 use ftd_types::err::IdentityDataError;
+use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::IdentityChange;
-use ftd_types::substrate::{Block, Identity, SubIdentity};
+use ftd_types::substrate::identity::{Identity, SubIdentity};
 use serde_json::Value;
 
 fn get_judgement(value: &Value) -> anyhow::Result<Option<String>> {

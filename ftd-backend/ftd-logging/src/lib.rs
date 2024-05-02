@@ -12,11 +12,13 @@ pub fn init(config: &Config) {
     builder.target(Target::Stdout);
     builder.filter(None, other_modules_log_level);
     builder.filter(Some("ftd_graph_updater"), log_level);
+    builder.filter(Some("ftd_identity_updater"), log_level);
     builder.filter(Some("ftd_indexer"), log_level);
     builder.filter(Some("ftd_metrics"), log_level);
     builder.filter(Some("ftd_metrics_server"), log_level);
     builder.filter(Some("ftd_persistence"), log_level);
     builder.filter(Some("ftd_sidecar_client"), log_level);
+    builder.filter(Some("ftd_substrate_client"), log_level);
     builder.filter(Some("ftd_transfer_volume_updater"), log_level);
     builder.filter(Some("ftd_types"), log_level);
     builder.write_style(WriteStyle::Always);

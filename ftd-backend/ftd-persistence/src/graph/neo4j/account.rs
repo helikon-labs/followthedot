@@ -1,5 +1,5 @@
 use super::Neo4JStorage;
-use ftd_types::substrate::{Identity, SubIdentity};
+use ftd_types::substrate::identity::{Identity, SubIdentity};
 use neo4rs::{query, Txn};
 
 impl Neo4JStorage {

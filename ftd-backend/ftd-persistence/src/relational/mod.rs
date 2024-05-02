@@ -1,6 +1,7 @@
 use crate::{CONFIG, REDENOMINATION_BLOCK_NUMBER};
+use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::{IdentityChange, Transfer};
-use ftd_types::substrate::{Block, Identity, SubIdentity};
+use ftd_types::substrate::identity::{Identity, SubIdentity};
 use postgres::PostgreSQLStorage;
 use sqlx::{Postgres, Transaction};
 

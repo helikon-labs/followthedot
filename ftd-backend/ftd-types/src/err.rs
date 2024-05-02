@@ -1,5 +1,6 @@
 //! Error types.
 use serde::{Deserialize, Serialize};
+use sp_core::bytes::FromHexError;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct ServiceError {
@@ -64,4 +65,22 @@ pub enum IdentityDataError {
     JudgementsNotFound,
     #[error("Unexpected judgement data structure.")]
     JudgementDataError,
+}
+
+#[derive(thiserror::Error, Clone, Debug)]
+pub enum DecodeError {
+    #[error("Decode error: {0}")]
+    Error(String),
+}
+
+impl From<FromHexError> for DecodeError {
+    fn from(error: FromHexError) -> Self {
+        Self::Error(error.to_string())
+    }
+}
+
+impl From<parity_scale_codec::Error> for DecodeError {
+    fn from(error: parity_scale_codec::Error) -> Self {
+        Self::Error(error.to_string())
+    }
 }

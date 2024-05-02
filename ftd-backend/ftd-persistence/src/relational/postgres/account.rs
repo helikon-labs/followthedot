@@ -1,5 +1,5 @@
 use super::PostgreSQLStorage;
-use ftd_types::substrate::{Identity, SubIdentity};
+use ftd_types::substrate::identity::{Identity, SubIdentity};
 use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {

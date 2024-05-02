@@ -1,6 +1,7 @@
 [substrate]
 chain = "polkadot"
 chain_display = "Polkadot"
+rpc_url = "wss://rpc.helikon.io:443/polkadot"
 sidecar_url = "https://sidecar.helikon.io/polkadot"
 token_ticker = "DOT"
 token_decimals = 12

@@ -1,7 +1,7 @@
 use crate::CONFIG;
 use ftd_types::graph::GraphUpdaterState;
 use ftd_types::substrate::event::{IdentityChange, Transfer};
-use ftd_types::substrate::{Identity, SubIdentity};
+use ftd_types::substrate::identity::{Identity, SubIdentity};
 use neo4j::Neo4JStorage;
 use neo4rs::Txn;
 

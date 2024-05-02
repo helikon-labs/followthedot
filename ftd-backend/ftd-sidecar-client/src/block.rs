@@ -1,7 +1,7 @@
 use crate::SidecarClient;
 use ftd_types::err::{BlockDataError, IdentityEventDataError, TransferEventDataError};
+use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::{IdentityChange, Transfer};
-use ftd_types::substrate::Block;
 use serde_json::Value;
 
 fn get_number(json: &Value) -> anyhow::Result<u64> {

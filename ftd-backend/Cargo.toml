@@ -2,12 +2,14 @@
 members = [
     "ftd-config",
     "ftd-graph-updater",
+    "ftd-identity-updater",
     "ftd-indexer",
     "ftd-logging",
     "ftd-metrics",
     "ftd-persistence",
     "ftd-service",
     "ftd-sidecar-client",
+    "ftd-substrate-client",
     "ftd-transfer-volume-updater",
     "ftd-types",
 ]
@@ -23,8 +25,13 @@ async-trait = "0.1"
 chrono = "0.4"
 config = "0.14"
 env_logger = "0.11"
+frame-metadata = "16.0"
+frame-support = "33.0.0"
 hex = "0.4"
 itertools = "0.12"
+jsonrpsee = "0.22"
+jsonrpsee-core = "0.22"
+jsonrpsee-types = "0.22"
 lazy_static = "1.4"
 log = "0.4"
 neo4rs = "0.7.1"
@@ -33,6 +40,7 @@ prometheus = "0.13"
 reqwest = "0.12"
 serde = "1"
 serde_json = "1"
+sp-core = "32.0.0"
 sqlx = "0.7.4"
 thiserror = "1"
 tokio = "1.37"

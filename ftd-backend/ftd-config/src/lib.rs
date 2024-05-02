@@ -42,6 +42,7 @@ pub struct CommonConfig {
 pub struct SubstrateConfig {
     pub chain: String,
     pub chain_display: String,
+    pub rpc_url: String,
     pub sidecar_url: String,
     pub connection_timeout_seconds: u64,
     pub request_timeout_seconds: u64,
@@ -88,6 +89,7 @@ pub struct MetricsConfig {
     pub host: String,
     pub indexer_port: u16,
     pub transfer_volume_updater_port: u16,
+    pub identity_updater_port: u16,
 }
 
 #[derive(Clone, Debug, Deserialize)]

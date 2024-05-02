@@ -1,6 +1,7 @@
 use super::PostgreSQLStorage;
+use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::IdentityChange;
-use ftd_types::substrate::{Block, Identity, SubIdentity};
+use ftd_types::substrate::identity::{Identity, SubIdentity};
 use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {

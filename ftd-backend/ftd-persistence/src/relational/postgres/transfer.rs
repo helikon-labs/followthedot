@@ -1,6 +1,6 @@
 use super::PostgreSQLStorage;
+use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::Transfer;
-use ftd_types::substrate::Block;
 use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {

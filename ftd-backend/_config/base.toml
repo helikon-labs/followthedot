@@ -24,6 +24,7 @@ database_name = "neo4j"
 [substrate]
 chain = "polkadot"
 chain_display = "Polkadot"
+rpc_url = "wss://rpc.helikon.io:443/polkadot"
 sidecar_url = "http://104.247.178.10:21001"
 connection_timeout_seconds = 15
 request_timeout_seconds = 15
@@ -40,3 +41,4 @@ chunk_size = 100
 host = "127.0.0.1"
 indexer_port = 11000
 transfer_volume_updater_port = 11010
+identity_updater_port = 11011
