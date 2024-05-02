@@ -3,15 +3,13 @@ use crate::storage_utility::{
     get_rpc_storage_plain_params,
 };
 use ftd_config::Config;
-use ftd_types::substrate::account_id::AccountId;
 use ftd_types::substrate::block::BlockHeader;
 use ftd_types::substrate::chain::Chain;
-use ftd_types::substrate::identity::{data_to_string, IdentityRegistration, SuperAccountId};
+use ftd_types::substrate::identity::{Identity, SubIdentity};
 use jsonrpsee::ws_client::WsClientBuilder;
 use jsonrpsee_core::client::{Client, ClientT};
 use jsonrpsee_core::rpc_params;
 use sp_core::storage::StorageChangeSet;
-use sp_core::Decode;
 use std::str::FromStr;
 
 mod storage_utility;
@@ -140,7 +138,7 @@ impl SubstrateClient {
         Ok(header)
     }
 
-    pub async fn get_identities(&self, at: &str) -> anyhow::Result<Vec<IdentityRegistration>> {
+    pub async fn get_identities(&self, at: &str) -> anyhow::Result<Vec<Identity>> {
         let keys = self
             .get_all_keys_for_storage("Identity", "IdentityOf", at)
             .await?;
@@ -154,17 +152,14 @@ impl SubstrateClient {
             let account_id = account_id_from_storage_key(storage_key);
             if let Some(data) = storage_data {
                 let bytes: &[u8] = &data.0;
-                let identity = IdentityRegistration::from_bytes(account_id, bytes).unwrap();
+                let identity = Identity::from_bytes(account_id, bytes).unwrap();
                 identities.push(identity);
             }
         }
         Ok(identities)
     }
 
-    pub async fn get_sub_identities(
-        &self,
-        at: &str,
-    ) -> anyhow::Result<Vec<(AccountId, AccountId, Option<String>)>> {
+    pub async fn get_sub_identities(&self, at: &str) -> anyhow::Result<Vec<SubIdentity>> {
         let keys = self
             .get_all_keys_for_storage("Identity", "SuperOf", at)
             .await?;
@@ -177,13 +172,8 @@ impl SubstrateClient {
         for (storage_key, storage_data) in values[0].changes.iter() {
             let account_id = account_id_from_storage_key(storage_key);
             if let Some(data) = storage_data {
-                let mut bytes: &[u8] = &data.0;
-                let super_identity: SuperAccountId = Decode::decode(&mut bytes).unwrap();
-                sub_identities.push((
-                    account_id,
-                    super_identity.0,
-                    data_to_string(super_identity.1),
-                ))
+                let bytes: &[u8] = &data.0;
+                sub_identities.push(SubIdentity::from_bytes(account_id, bytes)?)
             }
         }
         Ok(sub_identities)

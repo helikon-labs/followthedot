@@ -15,6 +15,7 @@ lazy_static! {
 pub struct GraphUpdater;
 
 impl GraphUpdater {
+    /*
     async fn process_identity_changes(
         &self,
         relational_storage: &RelationalStorage,
@@ -53,6 +54,7 @@ impl GraphUpdater {
         log::info!("Max identity change id {max_identity_change_id} is processed.");
         Ok(())
     }
+     */
 
     async fn process_transfers(
         &self,
@@ -98,8 +100,6 @@ impl Service for GraphUpdater {
         let graph_storage = GraphStorage::new().await?;
         let sleep_seconds = CONFIG.common.recovery_retry_seconds;
         loop {
-            self.process_identity_changes(&relational_storage, &graph_storage)
-                .await?;
             self.process_transfers(&relational_storage, &graph_storage)
                 .await?;
             log::info!("Completed processing. Sleep for {sleep_seconds} seconds.");

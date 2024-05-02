@@ -88,20 +88,14 @@ impl Service for Indexer {
                         .get_range_of_blocks(range_start_block_number, range_end_block_number)
                         .await?;
                     for block in blocks {
-                        storage
-                            .save_block(
-                                block.clone(),
-                                sidecar.get_block_identity_updates(&block).await?,
-                            )
-                            .await?;
+                        storage.save_block(block.clone()).await?;
                         log::info!("Persisted block {}.", block.number);
                     }
                 } else {
                     for block_number in block_numbers {
                         let block = sidecar.get_block_by_number(*block_number).await?;
                         let block_number = block.number;
-                        let identity_changes = sidecar.get_block_identity_updates(&block).await?;
-                        storage.save_block(block, identity_changes).await?;
+                        storage.save_block(block).await?;
                         log::info!("Persisted block {}.", block_number);
                     }
                 }

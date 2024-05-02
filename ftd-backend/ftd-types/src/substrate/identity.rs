@@ -6,24 +6,7 @@ use pallet_identity::{Data, Judgement, Registration};
 use parity_scale_codec::Decode;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Identity {
-    pub display: Option<String>,
-    pub legal: Option<String>,
-    pub web: Option<String>,
-    pub riot: Option<String>,
-    pub email: Option<String>,
-    pub twitter: Option<String>,
-    pub judgement: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SubIdentity {
-    pub super_address: Option<String>,
-    pub sub_display: Option<String>,
-}
-
-pub fn data_to_string(data: Data) -> Option<String> {
+pub fn identity_data_to_string(data: Data) -> Option<String> {
     match data {
         Data::Raw(raw) => {
             let maybe_string = String::from_utf8(raw.into_inner());
@@ -37,29 +20,31 @@ pub fn data_to_string(data: Data) -> Option<String> {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
-pub struct IdentityRegistration {
+#[derive(Clone, Default, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct Identity {
     pub account_id: AccountId,
     pub display: Option<String>,
     pub email: Option<String>,
+    pub legal: Option<String>,
     pub riot: Option<String>,
     pub twitter: Option<String>,
     pub web: Option<String>,
-    pub confirmed: bool,
+    pub is_confirmed: bool,
 }
 
-impl IdentityRegistration {
+impl Identity {
     pub fn from_bytes(account_id: AccountId, mut bytes: &[u8]) -> anyhow::Result<Self> {
         let registration: Registration<
             Balance,
             ConstU32<{ u32::MAX }>,
             IdentityInfo<ConstU32<{ u32::MAX }>>,
         > = Decode::decode(&mut bytes)?;
-        let display = data_to_string(registration.info.display);
-        let email = data_to_string(registration.info.email);
-        let riot = data_to_string(registration.info.riot);
-        let twitter = data_to_string(registration.info.twitter);
-        let web = data_to_string(registration.info.web);
+        let display = identity_data_to_string(registration.info.display);
+        let email = identity_data_to_string(registration.info.email);
+        let legal = identity_data_to_string(registration.info.legal);
+        let riot = identity_data_to_string(registration.info.riot);
+        let twitter = identity_data_to_string(registration.info.twitter);
+        let web = identity_data_to_string(registration.info.web);
         let mut confirmed = true;
         for judgement in registration.judgements {
             confirmed &= match judgement.1 {
@@ -71,16 +56,33 @@ impl IdentityRegistration {
                 Judgement::Erroneous => false,
             };
         }
-        Ok(IdentityRegistration {
+        Ok(Identity {
             account_id,
             display,
             email,
+            legal,
             riot,
             twitter,
             web,
-            confirmed,
+            is_confirmed: confirmed,
         })
     }
 }
 
-pub type SuperAccountId = (AccountId, Data);
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SubIdentity {
+    pub account_id: AccountId,
+    pub super_account_id: AccountId,
+    pub sub_display: Option<String>,
+}
+
+impl SubIdentity {
+    pub fn from_bytes(account_id: AccountId, mut bytes: &[u8]) -> anyhow::Result<Self> {
+        let sub_info: (AccountId, Data) = Decode::decode(&mut bytes)?;
+        Ok(SubIdentity {
+            account_id,
+            super_account_id: sub_info.0,
+            sub_display: identity_data_to_string(sub_info.1),
+        })
+    }
+}

@@ -1,5 +1,5 @@
 use super::PostgreSQLStorage;
-use ftd_types::substrate::event::Transfer;
+use ftd_types::substrate::event::TransferEvent;
 
 impl PostgreSQLStorage {
     pub async fn get_transfer_volume_updater_last_processed_transfer_id(
@@ -32,7 +32,10 @@ impl PostgreSQLStorage {
         Ok(())
     }
 
-    pub async fn update_transfer_volume(&self, transfer: &Transfer) -> anyhow::Result<(u128, u32)> {
+    pub async fn update_transfer_volume(
+        &self,
+        transfer: &TransferEvent,
+    ) -> anyhow::Result<(u128, u32)> {
         let maybe_transfer_volume: Option<(String,)> = sqlx::query_as(
             r#"
             SELECT volume

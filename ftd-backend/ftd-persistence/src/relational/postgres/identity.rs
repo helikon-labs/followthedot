@@ -1,58 +1,107 @@
 use super::PostgreSQLStorage;
-use ftd_types::substrate::block::Block;
-use ftd_types::substrate::event::IdentityChange;
 use ftd_types::substrate::identity::{Identity, SubIdentity};
 use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {
-    pub async fn get_max_identity_change_id(&self) -> anyhow::Result<i32> {
-        let id: (i32,) = sqlx::query_as(
-            r#"
-            SELECT COALESCE(MAX(id), 0) FROM ftd_identity_change
-            "#,
-        )
-        .fetch_one(&self.connection_pool)
-        .await?;
-        Ok(id.0)
+    pub async fn delete_all_identities(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<()> {
+        sqlx::query("DELETE FROM ftd_identity")
+            .execute(&mut **tx)
+            .await?;
+        Ok(())
     }
 
-    pub async fn save_identity_change(
+    pub async fn save_identity(
         &self,
-        block: &Block,
-        identity_change: &IdentityChange,
-        identity: &Option<Identity>,
-        sub_identity: &Option<SubIdentity>,
-        transaction: &mut Transaction<'_, Postgres>,
-    ) -> anyhow::Result<i32> {
-        let result: (i32,) = sqlx::query_as(
+        block_hash: &str,
+        block_number: u64,
+        identity: &Identity,
+        tx: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<String> {
+        let address = identity.account_id.to_ss58_check();
+        self.save_account(address.as_str(), tx).await?;
+        let result: (String,) = sqlx::query_as(
             r#"
-            INSERT INTO ftd_identity_change (block_hash, block_number, timestamp, extrinsic_index, extrinsic_event_index, event_index, address, display, legal, web, riot, email, twitter, judgement, super_address, sub_display)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-            ON CONFLICT (block_hash, extrinsic_index, event_index) DO NOTHING
-            RETURNING id
+            INSERT INTO ftd_identity (address, block_hash, block_number, display, legal, web, riot, email, twitter, is_confirmed)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (address) DO UPDATE
+            SET
+                block_hash = EXCLUDED.block_hash,
+                block_number = EXCLUDED.block_number,
+                display = EXCLUDED.display,
+                legal = EXCLUDED.legal,
+                web = EXCLUDED.web,
+                riot = EXCLUDED.riot,
+                email = EXCLUDED.email,
+                twitter = EXCLUDED.twitter,
+                is_confirmed = EXCLUDED.is_confirmed,
+                updated_at = now()
+            RETURNING address
             "#,
         )
-            .bind(&block.hash)
-            .bind(block.number as i64)
-            .bind(block.timestamp as i64)
-            .bind(identity_change.extrinsic_index as i32)
-            .bind(identity_change.extrinsic_event_index as i32)
-            .bind(identity_change.event_index as i32)
-            .bind(&identity_change.address)
-            .bind(identity.as_ref().map(|identity| &identity.display))
-            .bind(identity.as_ref().map(|identity| &identity.legal))
-            .bind(identity.as_ref().map(|identity| &identity.web))
-            .bind(identity.as_ref().map(|identity| &identity.riot))
-            .bind(identity.as_ref().map(|identity| &identity.email))
-            .bind(identity.as_ref().map(|identity| &identity.twitter))
-            .bind(identity.as_ref().map(|identity| &identity.judgement))
-            .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.super_address))
-            .bind(sub_identity.as_ref().map(|sub_identity| &sub_identity.sub_display))
-            .fetch_one(&mut **transaction)
+            .bind(&address)
+            .bind(block_hash)
+            .bind(block_number as i64)
+            .bind(&identity.display)
+            .bind(&identity.legal)
+            .bind(&identity.web)
+            .bind(&identity.riot)
+            .bind(&identity.email)
+            .bind(&identity.twitter)
+            .bind(identity.is_confirmed)
+            .fetch_one(&mut **tx)
             .await?;
         Ok(result.0)
     }
 
+    pub async fn delete_all_sub_identities(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<()> {
+        sqlx::query("DELETE FROM ftd_sub_identity")
+            .execute(&mut **tx)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn save_sub_identity(
+        &self,
+        block_hash: &str,
+        block_number: u64,
+        sub_identity: &SubIdentity,
+        tx: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<String> {
+        let address = sub_identity.account_id.to_ss58_check();
+        let super_address = sub_identity.super_account_id.to_ss58_check();
+        self.save_account(address.as_str(), tx).await?;
+        self.save_account(super_address.as_str(), tx).await?;
+        let result: (String,) = sqlx::query_as(
+            r#"
+            INSERT INTO ftd_sub_identity (address, block_hash, block_number, super_address, sub_display)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (address) DO UPDATE
+            SET
+                block_hash = EXCLUDED.block_hash,
+                block_number = EXCLUDED.block_number,
+                super_address = EXCLUDED.super_address,
+                sub_display = EXCLUDED.sub_display,
+                updated_at = now()
+            RETURNING address
+            "#,
+        )
+            .bind(&address)
+            .bind(block_hash)
+            .bind(block_number as i64)
+            .bind(&super_address)
+            .bind(sub_identity.sub_display.as_deref())
+            .fetch_one(&mut **tx)
+            .await?;
+        Ok(result.0)
+    }
+
+    /*
     pub async fn get_identity_change_by_id(
         &self,
         id: i32,
@@ -93,4 +142,5 @@ impl PostgreSQLStorage {
             Ok(None)
         }
     }
+     */
 }

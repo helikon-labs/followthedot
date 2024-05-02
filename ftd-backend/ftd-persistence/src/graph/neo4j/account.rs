@@ -1,5 +1,4 @@
 use super::Neo4JStorage;
-use ftd_types::substrate::identity::{Identity, SubIdentity};
 use neo4rs::{query, Txn};
 
 impl Neo4JStorage {
@@ -9,7 +8,8 @@ impl Neo4JStorage {
         Ok(())
     }
 
-    pub async fn save_account_with_identity(
+    /*
+    pub async fn _save_account_with_identity(
         &self,
         tx: &mut Txn,
         address: &str,
@@ -32,11 +32,11 @@ impl Neo4JStorage {
             .param("riot", identity.riot.as_deref())
             .param("email", identity.email.as_deref())
             .param("twitter", identity.twitter.as_deref())
-            .param("judgement", identity.judgement.as_deref())
+            .param("is_confirmed", identity.is_confirmed.as_deref())
             .param("sub_display", sub_identity.sub_display.as_deref()),
         )
         .await?;
-        if let Some(super_address) = sub_identity.super_address.as_deref() {
+        if let Some(super_address) = sub_identity.super_account_id.as_deref() {
             self.save_account(tx, super_address).await?;
             tx.run(
                 query(
@@ -63,4 +63,5 @@ impl Neo4JStorage {
         }
         Ok(())
     }
+     */
 }

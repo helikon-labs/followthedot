@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS ftd_transfer
     CONSTRAINT ftd_transfer_fk_block_hash
         FOREIGN KEY (block_hash)
             REFERENCES ftd_block (hash)
-            ON DELETE RESTRICT
+            ON DELETE CASCADE
             ON UPDATE CASCADE,
     CONSTRAINT ftd_transfer_fk_from_address
         FOREIGN KEY (from_address)

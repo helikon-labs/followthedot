@@ -48,26 +48,6 @@ pub enum TransferEventDataError {
 }
 
 #[derive(thiserror::Error, Clone, Debug)]
-pub enum IdentityEventDataError {
-    #[error("Identity event account address not found.")]
-    AccountNotFound,
-    #[error("Identity event super account address not found.")]
-    SuperAccountNotFound,
-    #[error("Identity event sub account address not found.")]
-    SubAccountNotFound,
-    #[error("Identity event deposit not found.")]
-    DepositNotFound,
-}
-
-#[derive(thiserror::Error, Clone, Debug)]
-pub enum IdentityDataError {
-    #[error("Identity judgements not found.")]
-    JudgementsNotFound,
-    #[error("Unexpected judgement data structure.")]
-    JudgementDataError,
-}
-
-#[derive(thiserror::Error, Clone, Debug)]
 pub enum DecodeError {
     #[error("Decode error: {0}")]
     Error(String),

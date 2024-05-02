@@ -2,7 +2,6 @@ use ftd_config::Config;
 use std::time::Duration;
 
 mod block;
-mod identity;
 
 /// The client.
 pub struct SidecarClient {

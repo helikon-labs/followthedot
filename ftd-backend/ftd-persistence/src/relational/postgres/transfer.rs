@@ -1,6 +1,6 @@
 use super::PostgreSQLStorage;
 use ftd_types::substrate::block::Block;
-use ftd_types::substrate::event::Transfer;
+use ftd_types::substrate::event::TransferEvent;
 use sqlx::{Postgres, Transaction};
 
 impl PostgreSQLStorage {
@@ -18,7 +18,7 @@ impl PostgreSQLStorage {
     pub async fn save_transfer(
         &self,
         block: &Block,
-        transfer: &Transfer,
+        transfer: &TransferEvent,
         transaction: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<i32> {
         let result: (i32,) = sqlx::query_as(
@@ -43,7 +43,7 @@ impl PostgreSQLStorage {
         Ok(result.0)
     }
 
-    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Option<Transfer>> {
+    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Option<TransferEvent>> {
         let result: Option<(i32, i32, i32, String, String, String)> = sqlx::query_as(
             r#"
             SELECT extrinsic_index, extrinsic_event_index, event_index, from_address, to_address, amount
@@ -55,7 +55,7 @@ impl PostgreSQLStorage {
             .fetch_optional(&self.connection_pool)
             .await?;
         if let Some(row) = result {
-            Ok(Some(Transfer {
+            Ok(Some(TransferEvent {
                 extrinsic_index: row.0 as u16,
                 extrinsic_event_index: row.1 as u16,
                 event_index: row.2 as u16,

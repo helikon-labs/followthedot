@@ -1,0 +1,1 @@
+DROP TABLE ftd_sub_identity CASCADE;

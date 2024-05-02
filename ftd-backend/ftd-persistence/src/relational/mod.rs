@@ -1,6 +1,6 @@
 use crate::{CONFIG, REDENOMINATION_BLOCK_NUMBER};
 use ftd_types::substrate::block::Block;
-use ftd_types::substrate::event::{IdentityChange, Transfer};
+use ftd_types::substrate::event::TransferEvent;
 use ftd_types::substrate::identity::{Identity, SubIdentity};
 use postgres::PostgreSQLStorage;
 use sqlx::{Postgres, Transaction};
@@ -39,23 +39,15 @@ impl RelationalStorage {
         self.postgres.get_max_transfer_id().await
     }
 
-    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Option<Transfer>> {
+    pub async fn get_transfer_by_id(&self, id: i32) -> anyhow::Result<Option<TransferEvent>> {
         self.postgres.get_transfer_by_id(id).await
     }
 
-    pub async fn update_transfer_volume(&self, transfer: &Transfer) -> anyhow::Result<(u128, u32)> {
-        self.postgres.update_transfer_volume(transfer).await
-    }
-
-    pub async fn get_max_identity_change_id(&self) -> anyhow::Result<i32> {
-        self.postgres.get_max_identity_change_id().await
-    }
-
-    pub async fn get_identity_change_by_id(
+    pub async fn update_transfer_volume(
         &self,
-        id: i32,
-    ) -> anyhow::Result<Option<(IdentityChange, Identity, SubIdentity)>> {
-        self.postgres.get_identity_change_by_id(id).await
+        transfer: &TransferEvent,
+    ) -> anyhow::Result<(u128, u32)> {
+        self.postgres.update_transfer_volume(transfer).await
     }
 
     pub async fn get_max_block_number_in_range_inclusive(
@@ -78,60 +70,77 @@ impl RelationalStorage {
     async fn save_transfer(
         &self,
         block: &Block,
-        transfer: &Transfer,
-        postgres_tx: &mut Transaction<'_, Postgres>,
+        transfer: &TransferEvent,
+        tx: &mut Transaction<'_, Postgres>,
     ) -> anyhow::Result<()> {
         // save accounts
-        self.postgres
-            .save_account(&transfer.from, postgres_tx)
-            .await?;
-        self.postgres
-            .save_account(&transfer.to, postgres_tx)
-            .await?;
+        self.postgres.save_account(&transfer.from, tx).await?;
+        self.postgres.save_account(&transfer.to, tx).await?;
         // save transfer
-        self.postgres
-            .save_transfer(block, transfer, postgres_tx)
-            .await?;
+        self.postgres.save_transfer(block, transfer, tx).await?;
         Ok(())
     }
 
-    pub async fn save_block(
-        &self,
-        block: Block,
-        identity_changes: Vec<(IdentityChange, Option<Identity>, Option<SubIdentity>)>,
-    ) -> anyhow::Result<()> {
-        let mut postgres_tx = self.postgres.begin_tx().await?;
+    pub async fn save_block(&self, block: Block) -> anyhow::Result<()> {
+        let mut tx = self.postgres.begin_tx().await?;
         let block = if block.number < REDENOMINATION_BLOCK_NUMBER {
             block.convert_to_old_dot()
         } else {
             block
         };
-        self.postgres.save_block(&block, &mut postgres_tx).await?;
+        self.postgres.save_block(&block, &mut tx).await?;
         for transfer in block.transfers.iter() {
-            self.save_transfer(&block, transfer, &mut postgres_tx)
+            self.save_transfer(&block, transfer, &mut tx).await?;
+        }
+        self.postgres.commit_tx(tx).await?;
+        Ok(())
+    }
+
+    async fn delete_all_identities(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<()> {
+        self.postgres.delete_all_identities(tx).await
+    }
+
+    pub async fn save_identities(
+        &self,
+        block_hash: &str,
+        block_number: u64,
+        identities: &[Identity],
+    ) -> anyhow::Result<()> {
+        let mut tx = self.postgres.begin_tx().await?;
+        self.delete_all_identities(&mut tx).await?;
+        for identity in identities.iter() {
+            self.postgres
+                .save_identity(block_hash, block_number, identity, &mut tx)
                 .await?;
         }
-        for identity_change in identity_changes.iter() {
+        self.postgres.commit_tx(tx).await?;
+        Ok(())
+    }
+
+    async fn delete_all_sub_identities(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+    ) -> anyhow::Result<()> {
+        self.postgres.delete_all_sub_identities(tx).await
+    }
+
+    pub async fn save_sub_identities(
+        &self,
+        block_hash: &str,
+        block_number: u64,
+        sub_identities: &[SubIdentity],
+    ) -> anyhow::Result<()> {
+        let mut tx = self.postgres.begin_tx().await?;
+        self.delete_all_sub_identities(&mut tx).await?;
+        for sub_identity in sub_identities.iter() {
             self.postgres
-                .save_account_with_identity(
-                    identity_change.0.address.as_str(),
-                    &identity_change.1,
-                    &identity_change.2,
-                    block.number,
-                    &mut postgres_tx,
-                )
-                .await?;
-            self.postgres
-                .save_identity_change(
-                    &block,
-                    &identity_change.0,
-                    &identity_change.1,
-                    &identity_change.2,
-                    &mut postgres_tx,
-                )
+                .save_sub_identity(block_hash, block_number, sub_identity, &mut tx)
                 .await?;
         }
-        self.postgres.commit_tx(postgres_tx).await?;
+        self.postgres.commit_tx(tx).await?;
         Ok(())
     }
 }

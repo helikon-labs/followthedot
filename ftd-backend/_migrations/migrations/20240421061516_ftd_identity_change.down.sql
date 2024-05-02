@@ -1,1 +1,0 @@
-DROP TABLE ftd_identity_change CASCADE;

@@ -1,4 +1,4 @@
-use crate::substrate::event::{IdentityChange, Transfer};
+use crate::substrate::event::TransferEvent;
 use frame_support::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -8,8 +8,7 @@ pub struct Block {
     pub hash: String,
     pub parent_hash: String,
     pub author_address: Option<String>,
-    pub transfers: Vec<Transfer>,
-    pub identity_changes: Vec<IdentityChange>,
+    pub transfers: Vec<TransferEvent>,
 }
 
 impl Block {

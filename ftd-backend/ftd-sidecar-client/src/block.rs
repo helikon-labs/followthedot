@@ -1,7 +1,7 @@
 use crate::SidecarClient;
-use ftd_types::err::{BlockDataError, IdentityEventDataError, TransferEventDataError};
+use ftd_types::err::{BlockDataError, TransferEventDataError};
 use ftd_types::substrate::block::Block;
-use ftd_types::substrate::event::{IdentityChange, Transfer};
+use ftd_types::substrate::event::TransferEvent;
 use serde_json::Value;
 
 fn get_number(json: &Value) -> anyhow::Result<u64> {
@@ -40,7 +40,7 @@ fn get_timestamp(json: &Value) -> anyhow::Result<u64> {
         .parse::<u64>()?)
 }
 
-fn get_transfer_events(json: &Value) -> anyhow::Result<Vec<Transfer>> {
+fn get_transfer_events(json: &Value) -> anyhow::Result<Vec<TransferEvent>> {
     let mut transfers = Vec::new();
     let extrinsics = json["extrinsics"]
         .as_array()
@@ -71,7 +71,7 @@ fn get_transfer_events(json: &Value) -> anyhow::Result<Vec<Transfer>> {
                     .as_str()
                     .ok_or(TransferEventDataError::AmountNotFound)?
                     .parse::<u128>()?;
-                transfers.push(Transfer {
+                transfers.push(TransferEvent {
                     extrinsic_index: extrinsic_index as u16,
                     extrinsic_event_index: extrinsic_event_index as u16,
                     event_index,
@@ -84,64 +84,6 @@ fn get_transfer_events(json: &Value) -> anyhow::Result<Vec<Transfer>> {
         }
     }
     Ok(transfers)
-}
-
-fn get_identity_changes(json: &Value) -> anyhow::Result<Vec<IdentityChange>> {
-    let mut identity_changes = Vec::new();
-    let extrinsics = json["extrinsics"]
-        .as_array()
-        .ok_or(BlockDataError::ExtrinsicsNotFound)?;
-    let mut event_index = 0;
-    for (extrinsic_index, extrinsic) in extrinsics.iter().enumerate() {
-        let events = extrinsic["events"]
-            .as_array()
-            .ok_or(BlockDataError::ExtrinsicEventsNotFound)?;
-        for (extrinsic_event_index, event_json) in events.iter().enumerate() {
-            let module = event_json["method"]["pallet"]
-                .as_str()
-                .ok_or(BlockDataError::EventModuleNotFound)?;
-            let event = event_json["method"]["method"]
-                .as_str()
-                .ok_or(BlockDataError::EventNameNotFound)?;
-            if module.to_lowercase() == "identity" {
-                match event.to_lowercase().as_str() {
-                    "identityset" | "identitycleared" | "identitykilled" | "judgementgiven" => {
-                        log::info!("Found {module}.{event}.");
-                        let address = event_json["data"][0]
-                            .as_str()
-                            .ok_or(IdentityEventDataError::AccountNotFound)?
-                            .to_string();
-                        identity_changes.push(IdentityChange {
-                            extrinsic_index: extrinsic_index as u16,
-                            extrinsic_event_index: extrinsic_event_index as u16,
-                            event_index,
-                            address,
-                        });
-                    }
-                    "subidentityadded" | "subidentityremoved" | "subidentityrevoked" => {
-                        log::info!("Found {module}.{event}.");
-                        let sub_address = event_json["data"][0]
-                            .as_str()
-                            .ok_or(IdentityEventDataError::SubAccountNotFound)?
-                            .to_string();
-                        let _super_address = event_json["data"][1]
-                            .as_str()
-                            .ok_or(IdentityEventDataError::SuperAccountNotFound)?
-                            .to_string();
-                        identity_changes.push(IdentityChange {
-                            extrinsic_index: extrinsic_index as u16,
-                            extrinsic_event_index: extrinsic_event_index as u16,
-                            event_index,
-                            address: sub_address,
-                        });
-                    }
-                    _ => (),
-                }
-            }
-            event_index += 1;
-        }
-    }
-    Ok(identity_changes)
 }
 
 impl SidecarClient {
@@ -176,7 +118,6 @@ impl SidecarClient {
         let author_address = get_author_address(json);
         let timestamp = self.get_block_timestamp(&hash).await?;
         let transfers = get_transfer_events(json)?;
-        let identity_changes = get_identity_changes(json)?;
         Ok(Block {
             timestamp,
             number,
@@ -184,7 +125,6 @@ impl SidecarClient {
             parent_hash,
             author_address,
             transfers,
-            identity_changes,
         })
     }
 

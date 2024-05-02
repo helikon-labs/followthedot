@@ -1,6 +1,6 @@
 use super::Neo4JStorage;
 use ftd_types::graph::TransferVolume;
-use ftd_types::substrate::event::Transfer;
+use ftd_types::substrate::event::TransferEvent;
 use neo4rs::{query, Relation, Txn};
 
 impl Neo4JStorage {
@@ -37,7 +37,7 @@ impl Neo4JStorage {
     pub async fn update_transfer_volume(
         &self,
         tx: &mut Txn,
-        transfer: &Transfer,
+        transfer: &TransferEvent,
     ) -> anyhow::Result<()> {
         let transfer_volume = self
             .get_transfer_volume(tx, transfer.from.as_str(), transfer.to.as_str())

@@ -1,7 +1,6 @@
 use crate::CONFIG;
 use ftd_types::graph::GraphUpdaterState;
-use ftd_types::substrate::event::{IdentityChange, Transfer};
-use ftd_types::substrate::identity::{Identity, SubIdentity};
+use ftd_types::substrate::event::TransferEvent;
 use neo4j::Neo4JStorage;
 use neo4rs::Txn;
 
@@ -48,27 +47,14 @@ impl GraphStorage {
             .await
     }
 
-    pub async fn save_transfer(&self, tx: &mut Txn, transfer: &Transfer) -> anyhow::Result<()> {
+    pub async fn save_transfer(
+        &self,
+        tx: &mut Txn,
+        transfer: &TransferEvent,
+    ) -> anyhow::Result<()> {
         self.neo4j.save_account(tx, transfer.from.as_str()).await?;
         self.neo4j.save_account(tx, transfer.to.as_str()).await?;
         self.neo4j.update_transfer_volume(tx, transfer).await?;
         Ok(())
-    }
-
-    pub async fn save_account_with_identity(
-        &self,
-        tx: &mut Txn,
-        identity_change: &IdentityChange,
-        identity: &Identity,
-        sub_identity: &SubIdentity,
-    ) -> anyhow::Result<()> {
-        self.neo4j
-            .save_account_with_identity(
-                tx,
-                identity_change.address.as_str(),
-                identity,
-                sub_identity,
-            )
-            .await
     }
 }
