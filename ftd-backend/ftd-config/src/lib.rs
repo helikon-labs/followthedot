@@ -59,6 +59,11 @@ pub struct IndexerConfig {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+pub struct IdentityUpdaterConfig {
+    pub sleep_seconds: u64,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct LogConfig {
     pub ftd_level: String,
     pub other_level: String,
@@ -100,6 +105,7 @@ pub struct Config {
     pub neo4j: Neo4JConfig,
     pub substrate: SubstrateConfig,
     pub indexer: IndexerConfig,
+    pub identity_updater: IdentityUpdaterConfig,
     pub metrics: MetricsConfig,
 }
 

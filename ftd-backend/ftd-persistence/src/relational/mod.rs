@@ -103,18 +103,11 @@ impl RelationalStorage {
         self.postgres.delete_all_identities(tx).await
     }
 
-    pub async fn save_identities(
-        &self,
-        block_hash: &str,
-        block_number: u64,
-        identities: &[Identity],
-    ) -> anyhow::Result<()> {
+    pub async fn save_identities(&self, identities: &[Identity]) -> anyhow::Result<()> {
         let mut tx = self.postgres.begin_tx().await?;
         self.delete_all_identities(&mut tx).await?;
         for identity in identities.iter() {
-            self.postgres
-                .save_identity(block_hash, block_number, identity, &mut tx)
-                .await?;
+            self.postgres.save_identity(identity, &mut tx).await?;
         }
         self.postgres.commit_tx(tx).await?;
         Ok(())
@@ -127,20 +120,27 @@ impl RelationalStorage {
         self.postgres.delete_all_sub_identities(tx).await
     }
 
-    pub async fn save_sub_identities(
-        &self,
-        block_hash: &str,
-        block_number: u64,
-        sub_identities: &[SubIdentity],
-    ) -> anyhow::Result<()> {
+    pub async fn save_sub_identities(&self, sub_identities: &[SubIdentity]) -> anyhow::Result<()> {
         let mut tx = self.postgres.begin_tx().await?;
         self.delete_all_sub_identities(&mut tx).await?;
         for sub_identity in sub_identities.iter() {
             self.postgres
-                .save_sub_identity(block_hash, block_number, sub_identity, &mut tx)
+                .save_sub_identity(sub_identity, &mut tx)
                 .await?;
         }
         self.postgres.commit_tx(tx).await?;
         Ok(())
+    }
+
+    pub async fn set_identity_updater_state(
+        &self,
+        block_hash: &str,
+        block_number: u64,
+        is_successful: bool,
+        error_log: Option<&str>,
+    ) -> anyhow::Result<()> {
+        self.postgres
+            .set_identity_updater_state(block_hash, block_number, is_successful, error_log)
+            .await
     }
 }

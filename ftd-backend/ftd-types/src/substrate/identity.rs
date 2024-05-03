@@ -30,6 +30,7 @@ pub struct Identity {
     pub twitter: Option<String>,
     pub web: Option<String>,
     pub is_confirmed: bool,
+    pub is_invalid: bool,
 }
 
 impl Identity {
@@ -45,15 +46,34 @@ impl Identity {
         let riot = identity_data_to_string(registration.info.riot);
         let twitter = identity_data_to_string(registration.info.twitter);
         let web = identity_data_to_string(registration.info.web);
-        let mut confirmed = true;
-        for judgement in registration.judgements {
-            confirmed &= match judgement.1 {
-                Judgement::Reasonable | Judgement::KnownGood => true,
-                Judgement::Unknown => false,
-                Judgement::FeePaid(_) => false,
-                Judgement::OutOfDate => false,
-                Judgement::LowQuality => false,
-                Judgement::Erroneous => false,
+        let mut is_confirmed = false;
+        let mut is_invalid = false;
+        for judgement in registration.judgements.iter() {
+            match judgement.1 {
+                Judgement::Reasonable | Judgement::KnownGood => {
+                    is_confirmed |= true;
+                    is_invalid |= false;
+                }
+                Judgement::Unknown => {
+                    is_confirmed |= false;
+                    is_invalid |= false;
+                }
+                Judgement::FeePaid(_) => {
+                    is_confirmed |= false;
+                    is_invalid |= false;
+                }
+                Judgement::OutOfDate => {
+                    is_confirmed |= false;
+                    is_invalid |= true;
+                }
+                Judgement::LowQuality => {
+                    is_confirmed |= false;
+                    is_invalid |= true;
+                }
+                Judgement::Erroneous => {
+                    is_confirmed |= false;
+                    is_invalid |= true;
+                }
             };
         }
         Ok(Identity {
@@ -64,7 +84,8 @@ impl Identity {
             riot,
             twitter,
             web,
-            is_confirmed: confirmed,
+            is_confirmed,
+            is_invalid,
         })
     }
 }

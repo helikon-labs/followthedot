@@ -1,15 +1,14 @@
 CREATE TABLE IF NOT EXISTS ftd_identity
 (
     address      VARCHAR(64) PRIMARY KEY,
-    block_hash   VARCHAR(64)                 NOT NULL,
-    block_number BIGINT                      NOT NULL,
     display      VARCHAR(256),
     legal        VARCHAR(256),
     web          VARCHAR(256),
     riot         VARCHAR(128),
     email        VARCHAR(128),
     twitter      VARCHAR(128),
-    is_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+    is_confirmed BOOLEAN                     NOT NULL DEFAULT FALSE,
+    is_invalid   BOOLEAN                     NOT NULL DEFAULT FALSE,
     created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     updated_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT now(),
     CONSTRAINT ftd_identity_fk_address

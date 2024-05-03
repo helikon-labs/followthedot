@@ -37,6 +37,9 @@ start_block_number = 12_000_000
 # end_block_number = 12_000_500
 chunk_size = 100
 
+[identity_updater]
+sleep_seconds = 10
+
 [metrics]
 host = "127.0.0.1"
 indexer_port = 11000

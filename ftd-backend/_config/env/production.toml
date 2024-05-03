@@ -5,5 +5,8 @@ other_level = "warn"
 [postgres]
 host = "127.0.0.1"
 
+[identity_updater]
+sleep_seconds = 1800
+
 [metrics]
 host = "0.0.0.0"

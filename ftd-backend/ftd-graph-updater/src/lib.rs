@@ -15,47 +15,6 @@ lazy_static! {
 pub struct GraphUpdater;
 
 impl GraphUpdater {
-    /*
-    async fn process_identity_changes(
-        &self,
-        relational_storage: &RelationalStorage,
-        graph_storage: &GraphStorage,
-    ) -> anyhow::Result<()> {
-        let state = graph_storage.get_state().await?;
-        let first_identity_change_id = state.last_processed_identity_change_id + 1;
-        let max_identity_change_id = relational_storage.get_max_identity_change_id().await?;
-        if first_identity_change_id <= max_identity_change_id {
-            log::info!(
-                "Process identity changes {first_identity_change_id}-{max_identity_change_id}."
-            );
-            for id in first_identity_change_id..=max_identity_change_id {
-                let mut tx = graph_storage.begin_tx().await?;
-                if let Some(identity_change) =
-                    relational_storage.get_identity_change_by_id(id).await?
-                {
-                    log::info!("Process identity change {id}.");
-                    graph_storage
-                        .save_account_with_identity(
-                            &mut tx,
-                            &identity_change.0,
-                            &identity_change.1,
-                            &identity_change.2,
-                        )
-                        .await?;
-                } else {
-                    log::warn!("Identity change id {id} not found.");
-                }
-                graph_storage
-                    .update_last_processed_identity_change_id(&mut tx, id)
-                    .await?;
-                graph_storage.commit_tx(tx).await?;
-            }
-        }
-        log::info!("Max identity change id {max_identity_change_id} is processed.");
-        Ok(())
-    }
-     */
-
     async fn process_transfers(
         &self,
         relational_storage: &RelationalStorage,
@@ -98,7 +57,7 @@ impl Service for GraphUpdater {
         log::info!("Graph updater started.");
         let relational_storage = RelationalStorage::new().await?;
         let graph_storage = GraphStorage::new().await?;
-        let sleep_seconds = CONFIG.common.recovery_retry_seconds;
+        let sleep_seconds = CONFIG.identity_updater.sleep_seconds;
         loop {
             self.process_transfers(&relational_storage, &graph_storage)
                 .await?;
