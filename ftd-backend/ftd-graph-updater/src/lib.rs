@@ -57,7 +57,7 @@ impl Service for GraphUpdater {
         log::info!("Graph updater started.");
         let relational_storage = RelationalStorage::new().await?;
         let graph_storage = GraphStorage::new().await?;
-        let sleep_seconds = CONFIG.identity_updater.sleep_seconds;
+        let sleep_seconds = CONFIG.common.recovery_retry_seconds;
         loop {
             self.process_transfers(&relational_storage, &graph_storage)
                 .await?;
