@@ -9,7 +9,7 @@ anyhow = { workspace = true }
 frame-support = { workspace = true }
 hex = { workspace = true }
 pallet-identity = "33.0.0"
-parity-scale-codec = "3.6.9"
+parity-scale-codec = "3.6.12"
 serde = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 thiserror = { workspace = true }
