@@ -1,61 +1,24 @@
-interface Identity {
-    display: string;
-    isConfirmed: boolean;
-}
+import { GraphData } from '../model/ftd-model';
 
-interface SubIdentity {
-    display: string;
-    superAddress: string;
-}
-
-interface Account {
-    address: string;
-    identity: Identity | null;
-    subIdentity: SubIdentity | null;
-    superIdentity: Identity | null;
-}
-
-interface TransferVolume {
-    id: number;
-    from: string;
-    to: string;
-    count: number;
-    volume: bigint;
-}
-
-interface TransferVolumeElement {
-    id: number;
-    source: string;
-    target: string;
-    count: number;
-    volume: bigint;
-    targetDistance: number;
-}
-
-interface Data {
-    accounts: Account[];
-    transferVolumes: TransferVolume[];
-}
-
-const DATA: Data = {
+const DATA: GraphData = {
     accounts: [
         {
             address: '123kFHVth2udmM79sn3RPQ81HukrQWCxA1vmTWkGHSvkR4k1',
-            identity: null,
-            subIdentity: null,
-            superIdentity: null,
+            identity: undefined,
+            subIdentity: undefined,
+            superIdentity: undefined,
         },
         {
             address: '12WLDL2AXoH3MHr1xj8K4m9rCcRKSWKTUz8A4mX3ah5khJBn',
-            identity: null,
-            subIdentity: null,
-            superIdentity: null,
+            identity: undefined,
+            subIdentity: undefined,
+            superIdentity: undefined,
         },
         {
             address: '114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5',
-            identity: null,
-            subIdentity: null,
-            superIdentity: null,
+            identity: undefined,
+            subIdentity: undefined,
+            superIdentity: undefined,
         },
     ],
     transferVolumes: [
@@ -90,4 +53,4 @@ const DATA: Data = {
     ],
 };
 
-export { Account, DATA, Data, TransferVolume, TransferVolumeElement };
+export { DATA };

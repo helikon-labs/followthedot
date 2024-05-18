@@ -1,75 +1,166 @@
 import * as d3 from 'd3';
-import { Account, Data } from '../data/data';
+import { Account, GraphData } from '../model/ftd-model';
 import { formatNumber, truncateAddress } from '../util/format';
+import { BaseType } from 'd3';
 
 const LINK_DISTANCE = 300;
 const LINK_ARROW_SIZE = 8;
 const LINK_SEPARATION_OFFSET = 12;
 const ACCOUNT_RADIUS = 60;
 
+type SVG = d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
+type SVG_CIRCLE = d3.Selection<BaseType | SVGCircleElement, unknown, SVGGElement, any>;
+type SVG_TEXT = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
+type SVG_BASE = d3.Selection<BaseType, unknown, SVGGElement, any>;
+type SVG_PATH = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
+
+function appendSVG(): SVG {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    return d3
+        .select('#chart-container')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('viewBox', [0, 0, width, height])
+        .attr('style', 'max-width: 100%; max-height: 100%;');
+}
+
+function appendSVGMarkerDefs(svg: SVG) {
+    svg.append('defs')
+        .selectAll('marker')
+        .data(['transfer'])
+        .enter()
+        .append('marker')
+        .attr('id', (d) => d)
+        .attr('markerWidth', LINK_ARROW_SIZE)
+        .attr('markerHeight', LINK_ARROW_SIZE)
+        .attr('refX', ACCOUNT_RADIUS + LINK_ARROW_SIZE)
+        .attr('refY', LINK_ARROW_SIZE / 2)
+        .attr('orient', 'auto')
+        .attr('markerUnits', 'userSpaceOnUse')
+        .append('path')
+        .attr('d', `M0,0L0,${LINK_ARROW_SIZE}L${LINK_ARROW_SIZE},${LINK_ARROW_SIZE / 2}z`);
+}
+
 class Graph {
-    private readonly accounts: any[];
-    private readonly transferVolumes: any[];
+    private readonly svg;
 
-    private readonly radius = (account: Account) => ACCOUNT_RADIUS;
-    private readonly width = window.innerWidth;
-    private readonly height = window.innerHeight;
+    constructor() {
+        this.svg = appendSVG();
+        appendSVGMarkerDefs(this.svg);
+    }
 
-    start() {
-        const simulation = d3
-            .forceSimulation(this.accounts)
-            .force(
-                'link',
-                d3
-                    .forceLink()
-                    // @ts-ignore
-                    .id((account) => account.address)
-                    .distance(LINK_DISTANCE)
-                    .links(this.transferVolumes),
-            )
-            // .force('charge', d3.forceManyBody())
-            .force('center', d3.forceCenter(this.width / 2, this.height / 2));
-        //.force('x', d3.forceX(this.width / 2))
-        //.force('y', d3.forceY(this.height / 2))
+    private radius = (account: Account) => ACCOUNT_RADIUS;
 
-        const svg = d3
-            .select('#chart-container')
-            .append('svg')
-            .attr('width', this.width)
-            .attr('height', this.height)
-            .attr('viewBox', [0, 0, this.width, this.height])
-            .attr('style', 'max-width: 100%; max-height: 100%;');
+    private getTransferVolumeTranslation(targetDistance: number, point0: any, point1: any) {
+        const x1_x0 = point1.x - point0.x,
+            y1_y0 = point1.y - point0.y;
+        let x2_x0, y2_y0;
+        if (y1_y0 === 0) {
+            x2_x0 = 0;
+            y2_y0 = targetDistance;
+        } else {
+            const angle = Math.atan(x1_x0 / y1_y0);
+            x2_x0 = -targetDistance * Math.cos(angle);
+            y2_y0 = targetDistance * Math.sin(angle);
+        }
+        return {
+            dx: x2_x0,
+            dy: y2_y0,
+        };
+    }
 
-        svg.append('defs')
-            .selectAll('marker')
-            .data(['transfer'])
-            .enter()
-            .append('marker')
-            .attr('id', (d) => d)
-            .attr('markerWidth', LINK_ARROW_SIZE)
-            .attr('markerHeight', LINK_ARROW_SIZE)
-            .attr('refX', ACCOUNT_RADIUS + LINK_ARROW_SIZE)
-            .attr('refY', LINK_ARROW_SIZE / 2)
-            .attr('orient', 'auto')
-            .attr('markerUnits', 'userSpaceOnUse')
-            .append('path')
-            .attr('d', `M0,0L0,${LINK_ARROW_SIZE}L${LINK_ARROW_SIZE},${LINK_ARROW_SIZE / 2}z`);
+    private transform = (d: any) => {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        d.x = d.x <= 5 ? 5 : d.x >= width - 5 ? width - 5 : d.x;
+        d.y = d.y <= 5 ? 5 : d.y >= height - 5 ? height - 5 : d.y;
+        return 'translate(' + d.x + ',' + d.y + ')';
+    };
 
-        const linkGroup = svg.append('g');
-        const link = linkGroup
-            .selectAll('path')
-            .data(this.transferVolumes)
-            .enter()
-            .append('path')
+    private tick(
+        account: SVG_CIRCLE,
+        accountLabel: SVG_TEXT,
+        identityIcon: SVG_BASE,
+        link: SVG_PATH,
+        linkLabel: SVG_TEXT,
+    ) {
+        account.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y);
+        accountLabel.attr('transform', this.transform);
+        identityIcon.attr('transform', this.transform);
+        link.attr(
+            'd',
+            (d: any) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`,
+        ).attr('transform', (d: any) => {
+            const translation = this.getTransferVolumeTranslation(
+                d.targetDistance * LINK_SEPARATION_OFFSET,
+                d.source,
+                d.target,
+            );
+            d.offsetX = translation.dx;
+            d.offsetY = translation.dy;
+            return `translate (${d.offsetX}, ${d.offsetY})`;
+        });
+        linkLabel.attr('transform', (d: any) => {
+            if (d.target.x < d.source.x) {
+                return (
+                    'rotate(180,' +
+                    ((d.source.x + d.target.x) / 2 + d.offsetX) +
+                    ',' +
+                    ((d.source.y + d.target.y) / 2 + d.offsetY) +
+                    ')'
+                );
+            } else {
+                return 'rotate(0)';
+            }
+        });
+    }
+
+    update(data: GraphData) {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        const accounts: any[] = data.accounts.map((d) => ({ ...d }));
+        const transferVolumes: any[] = data.transferVolumes.map((d) => ({
+            id: d.id,
+            source: d.from,
+            target: d.to,
+            count: d.count,
+            volume: d.volume,
+        }));
+
+        for (let i = 0; i < transferVolumes.length; i++) {
+            if (transferVolumes[i].targetDistance === -1) continue;
+            transferVolumes[i].targetDistance = 0;
+            for (let j = i + 1; j < transferVolumes.length; j++) {
+                if (transferVolumes[j].targetDistance === -1) continue;
+                if (
+                    transferVolumes[i].target === transferVolumes[j].source &&
+                    transferVolumes[i].source === transferVolumes[j].target
+                ) {
+                    transferVolumes[i].targetDistance = 1;
+                    transferVolumes[j].targetDistance = -1;
+                }
+            }
+        }
+
+        const linkGroup = this.svg.append('g');
+        const linkData = linkGroup.selectAll('path').data(transferVolumes, function (d: any) {
+            return d.id;
+        });
+        const link = linkData
+            .join('path')
             .attr('id', (d, i) => `link-${i}`)
             .attr('stroke', (d) => `#666`)
             .attr('stroke-width', (d) => 0.75)
             .attr('marker-end', (d) => `url(#transfer)`);
         const linkLabel = linkGroup
             .selectAll('text')
-            .data(this.transferVolumes)
-            .enter()
-            .append('text')
+            .data(transferVolumes, function (d: any) {
+                return d.id;
+            })
+            .join('text')
             .attr('class', 'link-label')
             .attr('text-anchor', 'middle')
             //.attr('dy', '0.31em');
@@ -85,10 +176,10 @@ class Graph {
             })
             .on('mouseout', function () {});
 
-        const accountGroup = svg.append('g');
+        const accountGroup = this.svg.append('g');
         const account = accountGroup
             .selectAll('circle')
-            .data(this.accounts)
+            .data(accounts)
             .join('circle')
             .attr('fill', '#DDD')
             .attr('stroke', '#00000033')
@@ -127,9 +218,8 @@ class Graph {
         );
         const accountLabel = accountGroup
             .selectAll('text')
-            .data(this.accounts)
-            .enter()
-            .append('text')
+            .data(accounts, (a: any) => a.address)
+            .join('text')
             .attr('class', 'account-label')
             .attr('x', (d) => '0')
             //.attr('x', (d) => '.91em')
@@ -139,10 +229,10 @@ class Graph {
             .style('pointer-events', 'none');
         account.append('title').text((d) => truncateAddress(d.address));
 
-        const identityIconGroup = svg.append('g');
+        const identityIconGroup = this.svg.append('g');
         const identityIcon = identityIconGroup
             .selectAll('image')
-            .data(this.accounts)
+            .data(accounts)
             .enter()
             .append('svg:image')
             .attr('xlink:href', function (d) {
@@ -154,13 +244,13 @@ class Graph {
             .attr('height', 16)
             .attr('opacity', (d) => 1.0);
 
-        svg.call(
+        this.svg.call(
             // @ts-ignore
             d3
                 .zoom()
                 .extent([
                     [0, 0],
-                    [this.width, this.height],
+                    [width, height],
                 ])
                 .scaleExtent([0.2, 8])
                 .on('zoom', (e) => {
@@ -169,88 +259,22 @@ class Graph {
                     identityIconGroup.attr('transform', e.transform);
                 }),
         ).on('dblclick.zoom', null);
-
+        
+        const simulation = d3
+            .forceSimulation(accounts)
+            .force(
+                'link',
+                d3
+                    .forceLink()
+                    // @ts-ignore
+                    .id((d) => d.address)
+                    .distance(LINK_DISTANCE)
+                    .links(transferVolumes),
+            )
+            .force('center', d3.forceCenter(width / 2, height / 2));
         simulation.on('tick', () => {
-            account.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
-            accountLabel.attr('transform', transform);
-            identityIcon.attr('transform', transform);
-            link.attr('d', (d) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`).attr(
-                'transform',
-                (d) => {
-                    const translation = getTransferVolumeTranslation(
-                        d.targetDistance * LINK_SEPARATION_OFFSET,
-                        d.source,
-                        d.target,
-                    );
-                    d.offsetX = translation.dx;
-                    d.offsetY = translation.dy;
-                    return `translate (${d.offsetX}, ${d.offsetY})`;
-                },
-            );
-            linkLabel.attr('transform', (d) => {
-                if (d.target.x < d.source.x) {
-                    return (
-                        'rotate(180,' +
-                        ((d.source.x + d.target.x) / 2 + d.offsetX) +
-                        ',' +
-                        ((d.source.y + d.target.y) / 2 + d.offsetY) +
-                        ')'
-                    );
-                } else {
-                    return 'rotate(0)';
-                }
-            });
+            this.tick(account, accountLabel, identityIcon, link, linkLabel);
         });
-
-        function getTransferVolumeTranslation(targetDistance: any, point0: any, point1: any) {
-            const x1_x0 = point1.x - point0.x,
-                y1_y0 = point1.y - point0.y;
-            let x2_x0, y2_y0;
-            if (y1_y0 === 0) {
-                x2_x0 = 0;
-                y2_y0 = targetDistance;
-            } else {
-                const angle = Math.atan(x1_x0 / y1_y0);
-                x2_x0 = -targetDistance * Math.cos(angle);
-                y2_y0 = targetDistance * Math.sin(angle);
-            }
-            return {
-                dx: x2_x0,
-                dy: y2_y0,
-            };
-        }
-
-        const transform = (d: any) => {
-            d.x = d.x <= 5 ? 5 : d.x >= this.width - 5 ? this.width - 5 : d.x;
-            d.y = d.y <= 5 ? 5 : d.y >= this.height - 5 ? this.height - 5 : d.y;
-            return 'translate(' + d.x + ',' + d.y + ')';
-        };
-    }
-
-    constructor(data: Data) {
-        this.accounts = data.accounts.map((d) => ({ ...d }));
-        this.transferVolumes = data.transferVolumes.map((d) => ({
-            id: d.id,
-            source: d.from,
-            target: d.to,
-            count: d.count,
-            volume: d.volume,
-        }));
-
-        for (let i = 0; i < this.transferVolumes.length; i++) {
-            if (this.transferVolumes[i].targetDistance === -1) continue;
-            this.transferVolumes[i].targetDistance = 0;
-            for (let j = i + 1; j < this.transferVolumes.length; j++) {
-                if (this.transferVolumes[j].targetDistance === -1) continue;
-                if (
-                    this.transferVolumes[i].target === this.transferVolumes[j].source &&
-                    this.transferVolumes[i].source === this.transferVolumes[j].target
-                ) {
-                    this.transferVolumes[i].targetDistance = 1;
-                    this.transferVolumes[j].targetDistance = -1;
-                }
-            }
-        }
     }
 }
 

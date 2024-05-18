@@ -11,7 +11,7 @@ class UI {
     private readonly background: HTMLDivElement;
     private readonly content: HTMLDivElement;
     private readonly eventBus = EventBus.getInstance();
-    private readonly graph = new Graph(DATA);
+    private readonly graph = new Graph();
 
     constructor() {
         this.root = <HTMLElement>document.getElementById('root');
@@ -21,7 +21,7 @@ class UI {
 
     init() {
         this.animate();
-        this.graph.start();
+        this.graph.update(DATA);
     }
 
     animate() {
