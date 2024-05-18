@@ -95,6 +95,7 @@ pub struct MetricsConfig {
     pub indexer_port: u16,
     pub transfer_volume_updater_port: u16,
     pub identity_updater_port: u16,
+    pub balance_updater_port: u16,
 }
 
 #[derive(Clone, Debug, Deserialize)]

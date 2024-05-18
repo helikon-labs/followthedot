@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "ftd-balance-updater",
     "ftd-config",
     "ftd-graph-updater",
     "ftd-identity-updater",

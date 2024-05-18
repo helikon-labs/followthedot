@@ -45,3 +45,4 @@ host = "127.0.0.1"
 indexer_port = 11000
 transfer_volume_updater_port = 11010
 identity_updater_port = 11011
+balance_updater_port = 11012

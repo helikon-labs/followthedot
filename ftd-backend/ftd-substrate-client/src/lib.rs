@@ -46,6 +46,7 @@ impl SubstrateClient {
         block_hash: &str,
     ) -> anyhow::Result<Vec<String>> {
         let mut all_keys: Vec<String> = Vec::new();
+        let mut total = 0;
         loop {
             let last = all_keys.last();
             let mut keys: Vec<String> = self
@@ -67,6 +68,8 @@ impl SubstrateClient {
                 .await?;
             let keys_length = keys.len();
             all_keys.append(&mut keys);
+            total += keys_length;
+            println!("{total}");
             if keys_length < KEY_QUERY_PAGE_SIZE {
                 break;
             }
@@ -177,5 +180,13 @@ impl SubstrateClient {
             }
         }
         Ok(sub_identities)
+    }
+
+    pub async fn get_balances(&self, at: &str) -> anyhow::Result<()> {
+        let keys = self
+            .get_all_keys_for_storage("System", "Account", at)
+            .await?;
+        log::info!("Got {} balance keys.", keys.len());
+        Ok(())
     }
 }

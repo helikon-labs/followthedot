@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" baseProfile="tiny" version="1.2" viewBox="25 40 50 35">
+    <defs/>
+    <circle cx="50" cy="50" fill="black" r="10"/>
+    <circle cx="70" cy="50" fill="black" r="5"/>
+    <circle cx="30" cy="70" fill="black" r="5"/>
+    <circle cx="70" cy="70" fill="black" r="5"/>
+    <line stroke="black" x1="50" x2="70" y1="50" y2="50"/>
+    <line stroke="black" x1="50" x2="30" y1="50" y2="70"/>
+    <line stroke="black" x1="50" x2="70" y1="50" y2="70"/>
+</svg>

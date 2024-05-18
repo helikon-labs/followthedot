@@ -1732,6 +1732,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "ftd-balance-updater"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "config",
+ "ftd-config",
+ "ftd-logging",
+ "ftd-metrics",
+ "ftd-persistence",
+ "ftd-service",
+ "ftd-substrate-client",
+ "ftd-types",
+ "lazy_static",
+ "log",
+ "once_cell",
+ "tokio",
+]
+
+[[package]]
 name = "ftd-config"
 version = "0.1.0"
 dependencies = [
