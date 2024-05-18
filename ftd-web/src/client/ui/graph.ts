@@ -3,15 +3,15 @@ import { Account, GraphData } from '../model/ftd-model';
 import { formatNumber, truncateAddress } from '../util/format';
 import { BaseType } from 'd3';
 
-const LINK_DISTANCE = 300;
+const LINK_DISTANCE = 400;
 const LINK_ARROW_SIZE = 8;
 const LINK_SEPARATION_OFFSET = 12;
-const ACCOUNT_RADIUS = 60;
+const ACCOUNT_RADIUS = 90;
 
 type SVG = d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
 type SVG_CIRCLE = d3.Selection<BaseType | SVGCircleElement, unknown, SVGGElement, any>;
 type SVG_TEXT = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
-type SVG_BASE = d3.Selection<BaseType, unknown, SVGGElement, any>;
+type SVG_GROUP = d3.Selection<BaseType | SVGGElement, unknown, SVGGElement, any>;
 type SVG_PATH = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
 
 function appendSVG(): SVG {
@@ -43,6 +43,42 @@ function appendSVGMarkerDefs(svg: SVG) {
         .attr('d', `M0,0L0,${LINK_ARROW_SIZE}L${LINK_ARROW_SIZE},${LINK_ARROW_SIZE / 2}z`);
 }
 
+function getAccountDisplay(account: Account): string {
+    if (account.identity?.display) {
+        return account.identity.display;
+    }
+    if (account.superIdentity?.display && account.subIdentity?.subDisplay) {
+        return `${account.subIdentity.subDisplay} / ${account.superIdentity.display}`;
+    }
+    return truncateAddress(account.address);
+}
+
+function getAccountConfirmedIcon(account: Account): string | undefined {
+    if (account.identity) {
+        if (account.identity.isInvalid) {
+            return './img/icon/id-invalid-icon.svg';
+        }
+        if (account.identity.isConfirmed) {
+            return './img/icon/id-confirmed-icon.svg';
+        }
+        if (!account.identity.isConfirmed) {
+            return './img/icon/id-unconfirmed-icon.svg';
+        }
+    }
+    if (account.superIdentity) {
+        if (account.superIdentity.isInvalid) {
+            return './img/icon/parent-id-invalid-icon.svg';
+        }
+        if (account.superIdentity.isConfirmed) {
+            return './img/icon/parent-id-confirmed-icon.svg';
+        }
+        if (!account.superIdentity.isConfirmed) {
+            return './img/icon/parent-id-unconfirmed-icon.svg';
+        }
+    }
+    return undefined;
+}
+
 class Graph {
     private readonly svg;
 
@@ -72,23 +108,25 @@ class Graph {
     }
 
     private transform = (d: any) => {
+        const idSelector = `#account-${d.address}-label`;
+        const element = d3.select(idSelector).node();
+        // @ts-ignore
+        const elementWidth = element!.getBoundingClientRect().width;
         const width = window.innerWidth;
         const height = window.innerHeight;
         d.x = d.x <= 5 ? 5 : d.x >= width - 5 ? width - 5 : d.x;
         d.y = d.y <= 5 ? 5 : d.y >= height - 5 ? height - 5 : d.y;
-        return 'translate(' + d.x + ',' + d.y + ')';
+        return 'translate(' + (d.x - elementWidth / 2) + ',' + d.y + ')';
     };
 
     private tick(
         account: SVG_CIRCLE,
-        accountLabel: SVG_TEXT,
-        identityIcon: SVG_BASE,
+        accountLabel: SVG_GROUP,
         link: SVG_PATH,
         linkLabel: SVG_TEXT,
     ) {
         account.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y);
         accountLabel.attr('transform', this.transform);
-        identityIcon.attr('transform', this.transform);
         link.attr(
             'd',
             (d: any) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`,
@@ -146,10 +184,9 @@ class Graph {
         }
 
         const linkGroup = this.svg.append('g');
-        const linkData = linkGroup.selectAll('path').data(transferVolumes, function (d: any) {
-            return d.id;
-        });
-        const link = linkData
+        const link = linkGroup
+            .selectAll('path')
+            .data(transferVolumes, (d: any) => d.id)
             .join('path')
             .attr('id', (d, i) => `link-${i}`)
             .attr('stroke', (d) => `#666`)
@@ -181,7 +218,8 @@ class Graph {
             .selectAll('circle')
             .data(accounts)
             .join('circle')
-            .attr('fill', '#DDD')
+            //.attr('fill', '#DDD')
+            .attr('fill', '#FFF')
             .attr('stroke', '#00000033')
             .attr('stroke-width', 5.0)
             .attr('r', this.radius)
@@ -190,13 +228,13 @@ class Graph {
                 d3.select(this).attr('cursor', 'pointer');
             })
             .on('mouseout', function () {
-                d3.select(this).attr('fill', '#DDD');
+                d3.select(this).attr('fill', '#FFF');
             })
             .on('dblclick', function (e, d) {
                 alert(d.address);
                 return false;
             });
-
+        account.append('title').text((d) => truncateAddress(d.address));
         account.call(
             // @ts-ignore
             d3
@@ -216,33 +254,28 @@ class Graph {
                     event.subject.fy = null;
                 }),
         );
-        const accountLabel = accountGroup
-            .selectAll('text')
-            .data(accounts, (a: any) => a.address)
-            .join('text')
-            .attr('class', 'account-label')
-            .attr('x', (d) => '0')
-            //.attr('x', (d) => '.91em')
-            .attr('y', '.31em')
-            .attr('text-anchor', 'middle')
-            .text((account: Account) => truncateAddress(account.address))
-            .style('pointer-events', 'none');
-        account.append('title').text((d) => truncateAddress(d.address));
 
-        const identityIconGroup = this.svg.append('g');
-        const identityIcon = identityIconGroup
-            .selectAll('image')
-            .data(accounts)
-            .enter()
+        const accountLabel = accountGroup
+            .selectAll('g')
+            .data(accounts, (a: any) => a.address)
+            .join('g')
+            .attr('id', (account: Account) => `account-${account.address}-label`);
+        accountLabel
+            .append('text')
+            .attr('class', 'account-label')
+            .attr('x', (account: Account) => getAccountConfirmedIcon(account) ? '16px' : '0')
+            .attr('y', '.31em')
+            // .attr('text-anchor', 'middle')
+            .text((account: Account) => getAccountDisplay(account))
+            .style('pointer-events', 'none');
+        accountLabel
             .append('svg:image')
-            .attr('xlink:href', function (d) {
-                return '/img/icon/id-confirmed-icon.svg';
-            })
-            .attr('x', -44)
-            .attr('y', -8)
-            .attr('width', 16)
-            .attr('height', 16)
-            .attr('opacity', (d) => 1.0);
+            .attr('xlink:href', (account: Account) => getAccountConfirmedIcon(account) ?? '')
+            // .attr('x', -44)
+            .attr('y', -6)
+            .attr('width', 12)
+            .attr('height', 12)
+            .attr('opacity', (account: Account) => getAccountConfirmedIcon(account) ? 1.0 : 0);
 
         this.svg.call(
             // @ts-ignore
@@ -256,10 +289,9 @@ class Graph {
                 .on('zoom', (e) => {
                     linkGroup.attr('transform', e.transform);
                     accountGroup.attr('transform', e.transform);
-                    identityIconGroup.attr('transform', e.transform);
                 }),
         ).on('dblclick.zoom', null);
-        
+
         const simulation = d3
             .forceSimulation(accounts)
             .force(
@@ -273,7 +305,7 @@ class Graph {
             )
             .force('center', d3.forceCenter(width / 2, height / 2));
         simulation.on('tick', () => {
-            this.tick(account, accountLabel, identityIcon, link, linkLabel);
+            this.tick(account, accountLabel, link, linkLabel);
         });
     }
 }

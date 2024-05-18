@@ -4,15 +4,29 @@ const DATA: GraphData = {
     accounts: [
         {
             address: '123kFHVth2udmM79sn3RPQ81HukrQWCxA1vmTWkGHSvkR4k1',
-            identity: undefined,
+            identity: {
+                address: '123kFHVth2udmM79sn3RPQ81HukrQWCxA1vmTWkGHSvkR4k1',
+                display: '🏔 HELIKON 🏔',
+                isConfirmed: true,
+                isInvalid: false,
+            },
             subIdentity: undefined,
             superIdentity: undefined,
         },
         {
             address: '12WLDL2AXoH3MHr1xj8K4m9rCcRKSWKTUz8A4mX3ah5khJBn',
             identity: undefined,
-            subIdentity: undefined,
-            superIdentity: undefined,
+            subIdentity: {
+                address: '12WLDL2AXoH3MHr1xj8K4m9rCcRKSWKTUz8A4mX3ah5khJBn',
+                superAccountId: '123kFHVth2udmM79sn3RPQ81HukrQWCxA1vmTWkGHSvkR4k1',
+                subDisplay: 'ISTANBUL',
+            },
+            superIdentity: {
+                address: '123kFHVth2udmM79sn3RPQ81HukrQWCxA1vmTWkGHSvkR4k1',
+                display: '🏔 HELIKON 🏔',
+                isConfirmed: true,
+                isInvalid: false,
+            },
         },
         {
             address: '114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5',
