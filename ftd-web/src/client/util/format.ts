@@ -34,7 +34,7 @@ function formatNumber(
 }
 
 function truncateAddress(address: string) {
-    return `${address.slice(0, 4)}...${address.slice(-4)}`;
+    return `${address.slice(0, 6)}...${address.slice(-6)}`;
 }
 
 function truncateHash(hash: string, size: number) {
@@ -61,4 +61,9 @@ function getBlockTimeFormatted(date: Date): string {
     return `${year}.${month}.${day} ${hour}:${minute}:${second}`;
 }
 
-export { formatNumber, truncateAddress, truncateHash, capitalize, getBlockTimeFormatted };
+function trimText(text: string, maxLength: number) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).concat('...');
+}
+
+export { formatNumber, truncateAddress, truncateHash, capitalize, getBlockTimeFormatted, trimText };

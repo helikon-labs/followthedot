@@ -125,8 +125,22 @@ a:active {
     width: 25px;
 }
 
-.account-label {
+/* ftd */
+.account-display-label {
+    opacity: 0.75;
     font-size: 12px;
+    font-weight: 500;
+}
+
+.account-balance-label {
+    opacity: 0.65;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.identity-icon {
+    width: 14px;
+    height: 14px;
 }
 
 .link-label {

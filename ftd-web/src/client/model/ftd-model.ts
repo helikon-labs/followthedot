@@ -21,6 +21,7 @@ interface Account {
     identity?: Identity;
     subIdentity?: SubIdentity;
     superIdentity?: Identity;
+    balance: bigint;
 }
 
 interface TransferVolume {

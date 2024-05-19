@@ -12,4 +12,13 @@ export abstract class Constants {
     static readonly BALANCE_FORMAT_DECIMALS = 4;
     static readonly DECIMAL_SEPARATOR = '.';
     static readonly THOUSANDS_SEPARATOR = ',';
+    static readonly MAX_IDENTITY_DISPLAY_LENGTH = 24;
+}
+
+export abstract class Kusama {
+    static readonly DECIMAL_COUNT = 12;
+}
+
+export abstract class Polkadot {
+    static readonly DECIMAL_COUNT = 10;
 }

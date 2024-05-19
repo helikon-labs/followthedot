@@ -4,7 +4,7 @@ import { show } from '../util/ui-util';
 import * as TWEEN from '@tweenjs/tween.js';
 import { EventBus } from '../event/event-bus';
 import { Graph } from './graph';
-import { DATA } from '../data/data';
+import { DATA, DATA_PT2 } from '../data/data';
 
 class UI {
     private readonly root: HTMLElement;
@@ -21,7 +21,12 @@ class UI {
 
     init() {
         this.animate();
-        this.graph.update(DATA);
+        this.graph.append(DATA);
+        /*
+        setTimeout(() => {
+            this.graph.append(DATA_PT2);
+        }, 5000);
+         */
     }
 
     animate() {
