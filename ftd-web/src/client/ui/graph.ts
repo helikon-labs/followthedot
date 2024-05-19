@@ -244,24 +244,7 @@ class Graph {
         });
     }
 
-    append(data: GraphData) {
-        for (const account of data.accounts) {
-            if (this.accounts.findIndex((a) => a.address === account.address) === -1) {
-                this.accounts.push({ ...account });
-            }
-        }
-        for (const transferVolume of data.transferVolumes) {
-            if (this.transferVolumes.findIndex((t) => t.id === transferVolume.id) === -1) {
-                this.transferVolumes.push({
-                    id: transferVolume.id,
-                    source: transferVolume.from,
-                    target: transferVolume.to,
-                    count: transferVolume.count,
-                    volume: transferVolume.volume,
-                });
-            }
-        }
-
+    private resetTransferVolumeLinkPositions() {
         for (let i = 0; i < this.transferVolumes.length; i++) {
             this.transferVolumes[i].linkPosition = LinkPosition.Middle;
         }
@@ -279,15 +262,46 @@ class Graph {
                 }
             }
         }
+    }
+
+    remove(address: string) {
+        console.log('remove', address);
+        this.accounts = this.accounts.filter((a) => a.address != address);
+        this.transferVolumes = this.transferVolumes.filter(
+            (t) => t.source.address != address && t.target.address != address,
+        );
+        this.resetTransferVolumeLinkPositions();
+        this.display();
+    }
+
+    append(data: GraphData) {
+        for (const account of data.accounts) {
+            if (this.accounts.findIndex((a) => a.address === account.address) === -1) {
+                this.accounts.push({ ...account });
+            }
+        }
+        for (const transferVolume of data.transferVolumes) {
+            if (this.transferVolumes.findIndex((t) => t.id === transferVolume.id) === -1) {
+                this.transferVolumes.push({
+                    id: transferVolume.id,
+                    source: transferVolume.from,
+                    target: transferVolume.to,
+                    count: transferVolume.count,
+                    volume: transferVolume.volume,
+                });
+            }
+        }
+        this.resetTransferVolumeLinkPositions();
         this.display();
     }
 
     private display() {
         const transfer = this.transferGroup
-            .selectAll('path')
+            .selectAll('path.transfer')
             .data(this.transferVolumes, (d: any) => d.id)
             .join('path')
-            .attr('id', (d, i) => `link-${i}`)
+            .attr('id', (d) => `link-${d.id}`)
+            .attr('class', 'transfer')
             .attr('stroke', (transfer: TransferVolume) => getTransferStrokeColor(transfer))
             .attr('stroke-width', (transfer: TransferVolume) => getTransferStrokeWidth(transfer))
             .attr('stroke-opacity', (transfer: TransferVolume) =>
@@ -306,7 +320,7 @@ class Graph {
             .attr('dy', '-0.25em');
         transferLabelEnter
             .append('textPath')
-            .attr('href', (d, i) => `#link-${i}`)
+            .attr('href', (d) => `#link-${d.id}`)
             .attr('startOffset', '50%')
             .text((d) => formatNumber(d.volume, Polkadot.DECIMAL_COUNT, 2, 'DOT'))
             //.style('pointer-events', 'none')
@@ -317,6 +331,7 @@ class Graph {
         transferLabel = this.transferGroup
             .selectAll('text')
             .data(this.transferVolumes, (d: any) => d.id);
+        transferLabel.exit().remove();
 
         let account = this.accountGroup
             .selectAll('circle.account')
@@ -338,12 +353,10 @@ class Graph {
             .on('mouseout', function (e, d) {
                 d3.select(this).attr('fill', '#FFF');
             })
-            .on('dblclick', function (e, d) {
-                alert(d.address);
-                return false;
+            .on('dblclick', (e, d) => {
+                this.remove(d.address);
             });
         accountEnter.append('title').text((d) => truncateAddress(d.address));
-        // account;
         accountEnter.call(
             // @ts-ignore
             d3
@@ -363,17 +376,19 @@ class Graph {
                     event.subject.fy = null;
                 }),
         );
+        account.exit().remove();
         account = this.accountGroup
             .selectAll('circle.account')
             .data(this.accounts, (d: any) => d.address);
 
         let accountLabel = this.accountGroup
-            .selectAll('g')
+            .selectAll('g.account-label')
             .data(this.accounts, (a: any) => a.address);
         const accountLabelEnter = accountLabel
             .enter()
             .append('g')
-            .attr('id', (account: Account) => `account-label-${account.address}`);
+            .attr('id', (account: Account) => `account-label-${account.address}`)
+            .attr('class', 'account-label');
         accountLabelEnter
             .append('svg:image')
             .attr('xlink:href', (account: Account) => getAccountConfirmedIcon(account) ?? '')
@@ -403,6 +418,7 @@ class Graph {
             .attr('id', (d) => `account-identicon-${d.address}`)
             .html((d) => getIdenticon(d.address))
             .style('pointer-events', 'none');
+        accountLabel.exit().remove();
         accountLabel = this.accountGroup.selectAll('g').data(this.accounts, (a: any) => a.address);
 
         this.svg
