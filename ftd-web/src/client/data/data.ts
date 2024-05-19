@@ -72,9 +72,57 @@ const DATA: GraphData = {
 
 const DATA_PT2: GraphData = {
     accounts: [
-
+        {
+            address: '114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5',
+            identity: undefined,
+            subIdentity: undefined,
+            superIdentity: undefined,
+            balance: BigInt('541823390036478265'),
+        },
+        {
+            address: '13iTiojfEzSXLprKzvE7Sdmg8gtUD2S2Am2Xv61xrtmDHcvJ',
+            identity: undefined,
+            subIdentity: undefined,
+            superIdentity: undefined,
+            balance: BigInt('3985935463521'),
+        },
+        {
+            address: '14N5GT7YTaDBSsLpfxxtCxNdYfgDofGj5wQSfqC1URKHdT8C',
+            identity: undefined,
+            subIdentity: undefined,
+            superIdentity: undefined,
+            balance: BigInt('8941294673827'),
+        },
     ],
     transferVolumes: [
+        {
+            id: 5,
+            from: '114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5',
+            to: '13iTiojfEzSXLprKzvE7Sdmg8gtUD2S2Am2Xv61xrtmDHcvJ',
+            count: 12,
+            volume: BigInt('64720602736748'),
+        },
+        {
+            id: 6,
+            from: '114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5',
+            to: '14N5GT7YTaDBSsLpfxxtCxNdYfgDofGj5wQSfqC1URKHdT8C',
+            count: 3,
+            volume: BigInt('12783047859'),
+        },
+        {
+            id: 7,
+            from: '14N5GT7YTaDBSsLpfxxtCxNdYfgDofGj5wQSfqC1URKHdT8C',
+            to: '114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5',
+            count: 1,
+            volume: BigInt('983674948000'),
+        },
+        {
+            id: 8,
+            from: '14N5GT7YTaDBSsLpfxxtCxNdYfgDofGj5wQSfqC1URKHdT8C',
+            to: '12WLDL2AXoH3MHr1xj8K4m9rCcRKSWKTUz8A4mX3ah5khJBn',
+            count: 1,
+            volume: BigInt('143529800047005'),
+        },
     ],
 };
 

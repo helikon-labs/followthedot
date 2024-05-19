@@ -12,8 +12,8 @@ const ACCOUNT_RADIUS = 90;
 
 type SVG = d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
 type SVG_CIRCLE = d3.Selection<BaseType | SVGCircleElement, unknown, SVGGElement, any>;
-type SVG_TEXT = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
-type SVG_GROUP = d3.Selection<BaseType | SVGGElement, unknown, SVGGElement, any>;
+type SVG_TEXT = d3.Selection<BaseType, unknown, SVGGElement, any>;
+type SVG_GROUP = d3.Selection<BaseType, unknown, SVGGElement, any>;
 type SVG_PATH = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
 
 enum LinkPosition {
@@ -30,7 +30,7 @@ const transferStrokeScale = d3.scaleLinear([0n, 50_000_000n].map(Number), [0.5, 
 const transferColorScale = d3.scaleLinear([0n, 50_000_000n].map(Number), ['gray', 'red']);
 const transferOpacityScale = d3.scaleLinear([0n, 50_000_000n].map(Number), [1.0, 0.25]);
 
-function getIdenticon(address: string, size: number): string {
+function getIdenticon(address: string): string {
     const circles = polkadotIcon(address, { isAlternative: false })
         .map(({ cx, cy, fill, r }) => `<circle cx=${cx} cy=${cy} fill="${fill}" r=${r} />`)
         .join('');
@@ -100,11 +100,11 @@ function getAccountConfirmedIcon(account: Account): string | undefined {
     return undefined;
 }
 
-function transformAccountLabel(d: any, scale: number) {
+function transformAccountLabel(d: any, scale: number): string {
     const groupSelector = `#account-label-${d.address}`;
-    const group = d3.select(groupSelector).node();
+    const group = d3.select(groupSelector);
     // @ts-ignore
-    const groupWidth = group!.getBoundingClientRect().width;
+    const groupWidth = group.node()!.getBoundingClientRect().width;
 
     // set balance label position
     const balanceLabelSelector = `#account-balance-label-${d.address}`;
@@ -116,9 +116,12 @@ function transformAccountLabel(d: any, scale: number) {
         `translate(${(groupWidth - balanceLabelWidth) / scale / 2}, 24)`,
     );
 
-    // set identicon position
+    // set identicon position & size
     const identiconSelector = `#account-identicon-${d.address}`;
     const identicon = d3.select(identiconSelector);
+    if (!identicon) {
+        return 'translate(0,0)';
+    }
     // @ts-ignore
     const identiconWidth = identicon.node()!.getBoundingClientRect().width;
     const x = (groupWidth - identiconWidth) / 2 / scale;
@@ -159,6 +162,7 @@ class Graph {
     private readonly svg;
     private readonly accountGroup;
     private readonly transferGroup;
+    private readonly simulation;
     private scale = 1;
     private accounts: any[] = [];
     private transferVolumes: any[] = [];
@@ -167,10 +171,20 @@ class Graph {
         this.svg = appendSVG();
         this.transferGroup = this.svg.append('g');
         this.accountGroup = this.svg.append('g');
+        this.simulation = d3
+            .forceSimulation()
+            .force(
+                'link',
+                d3
+                    .forceLink()
+                    // @ts-ignore
+                    .id((d) => d.address)
+                    .distance(LINK_DISTANCE),
+            )
+            .force('charge', d3.forceManyBody())
+            .force('center', d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
         appendSVGMarkerDefs(this.svg);
     }
-
-    private radius = (account: Account) => ACCOUNT_RADIUS;
 
     private getLinkTranslation(linkPosition: LinkPosition, point0: any, point1: any) {
         const x1_x0 = point1.x - point0.x,
@@ -202,21 +216,20 @@ class Graph {
     private tick(
         account: SVG_CIRCLE,
         accountLabel: SVG_GROUP,
-        link: SVG_PATH,
-        linkLabel: SVG_TEXT,
+        transfer: SVG_PATH,
+        transferLabel: SVG_TEXT,
     ) {
         account.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y);
         accountLabel.attr('transform', (d: any) => transformAccountLabel(d, this.scale));
-        link.attr(
-            'd',
-            (d: any) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`,
-        ).attr('transform', (d: any) => {
-            const translation = this.getLinkTranslation(d.linkPosition, d.source, d.target);
-            d.offsetX = translation.dx;
-            d.offsetY = translation.dy;
-            return `translate (${d.offsetX}, ${d.offsetY})`;
-        });
-        linkLabel.attr('transform', (d: any) => {
+        transfer
+            .attr('d', (d: any) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`)
+            .attr('transform', (d: any) => {
+                const translation = this.getLinkTranslation(d.linkPosition, d.source, d.target);
+                d.offsetX = translation.dx;
+                d.offsetY = translation.dy;
+                return `translate (${d.offsetX}, ${d.offsetY})`;
+            });
+        transferLabel.attr('transform', (d: any) => {
             if (d.target.x < d.source.x) {
                 return (
                     'rotate(180,' +
@@ -234,7 +247,7 @@ class Graph {
     append(data: GraphData) {
         for (const account of data.accounts) {
             if (this.accounts.findIndex((a) => a.address === account.address) === -1) {
-                this.accounts.push({...account});
+                this.accounts.push({ ...account });
             }
         }
         for (const transferVolume of data.transferVolumes) {
@@ -245,10 +258,13 @@ class Graph {
                     target: transferVolume.to,
                     count: transferVolume.count,
                     volume: transferVolume.volume,
-                })
+                });
             }
         }
 
+        for (let i = 0; i < this.transferVolumes.length; i++) {
+            this.transferVolumes[i].linkPosition = LinkPosition.Middle;
+        }
         for (let i = 0; i < this.transferVolumes.length; i++) {
             if (this.transferVolumes[i].linkPosition === LinkPosition.Left) continue;
             this.transferVolumes[i].linkPosition = LinkPosition.Middle;
@@ -263,14 +279,10 @@ class Graph {
                 }
             }
         }
-
         this.display();
     }
 
     private display() {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-
         const transfer = this.transferGroup
             .selectAll('path')
             .data(this.transferVolumes, (d: any) => d.id)
@@ -278,17 +290,21 @@ class Graph {
             .attr('id', (d, i) => `link-${i}`)
             .attr('stroke', (transfer: TransferVolume) => getTransferStrokeColor(transfer))
             .attr('stroke-width', (transfer: TransferVolume) => getTransferStrokeWidth(transfer))
-            .attr('stroke-opacity', (transfer: TransferVolume) => getTransferStrokeOpacity(transfer))
+            .attr('stroke-opacity', (transfer: TransferVolume) =>
+                getTransferStrokeOpacity(transfer),
+            )
             .attr('marker-end', 'url(#transfer)');
-        const transferLabel = this.transferGroup
+        let transferLabel = this.transferGroup
             .selectAll('text')
-            .data(this.transferVolumes, (d: any) => d.id)
-            .join('text')
+            .data(this.transferVolumes, (d: any) => d.id);
+        const transferLabelEnter = transferLabel
+            .enter()
+            .append('text')
             .attr('class', 'link-label')
             .attr('text-anchor', 'middle')
             //.attr('dy', '0.31em');
             .attr('dy', '-0.25em');
-        transferLabel
+        transferLabelEnter
             .append('textPath')
             .attr('href', (d, i) => `#link-${i}`)
             .attr('startOffset', '50%')
@@ -298,17 +314,23 @@ class Graph {
                 d3.select(this).attr('cursor', 'pointer');
             })
             .on('mouseout', function () {});
+        transferLabel = this.transferGroup
+            .selectAll('text')
+            .data(this.transferVolumes, (d: any) => d.id);
 
-        const account = this.accountGroup
-            .selectAll('circle')
-            .data(this.accounts, (d: any) => d.address)
-            .join('circle')
+        let account = this.accountGroup
+            .selectAll('circle.account')
+            .data(this.accounts, (d: any) => d.address);
+        const accountEnter = account
+            .enter()
+            .append('circle')
+            .attr('class', 'account')
             //.attr('fill', '#DDD')
             .attr('fill', '#FFF')
             .attr('stroke', (account: Account) => getAccountStrokeColor(account))
             .attr('stroke-width', (account: Account) => getAccountStrokeWidth(account))
             .attr('stroke-opacity', (account: Account) => getAccountStrokeOpacity(account))
-            .attr('r', this.radius)
+            .attr('r', ACCOUNT_RADIUS)
             .on('mouseover', function (e, d) {
                 d3.select(this).attr('fill', '#EFEFEF');
                 d3.select(this).attr('cursor', 'pointer');
@@ -320,13 +342,14 @@ class Graph {
                 alert(d.address);
                 return false;
             });
-        account.append('title').text((d) => truncateAddress(d.address));
-        account.call(
+        accountEnter.append('title').text((d) => truncateAddress(d.address));
+        // account;
+        accountEnter.call(
             // @ts-ignore
             d3
                 .drag()
                 .on('start', (event) => {
-                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    if (!event.active) this.simulation.alphaTarget(0.3).restart();
                     event.subject.fx = event.subject.x;
                     event.subject.fy = event.subject.y;
                 })
@@ -335,27 +358,30 @@ class Graph {
                     event.subject.fy = event.y;
                 })
                 .on('end', (event) => {
-                    if (!event.active) simulation.alphaTarget(0);
+                    if (!event.active) this.simulation.alphaTarget(0);
                     event.subject.fx = null;
                     event.subject.fy = null;
                 }),
         );
+        account = this.accountGroup
+            .selectAll('circle.account')
+            .data(this.accounts, (d: any) => d.address);
 
-        const accountLabel = this.accountGroup
+        let accountLabel = this.accountGroup
             .selectAll('g')
-            .data(this.accounts, (d: any) => d.address)
-            .join('g')
+            .data(this.accounts, (a: any) => a.address);
+        const accountLabelEnter = accountLabel
+            .enter()
+            .append('g')
             .attr('id', (account: Account) => `account-label-${account.address}`);
-        // append confirmation icon
-        accountLabel
+        accountLabelEnter
             .append('svg:image')
             .attr('xlink:href', (account: Account) => getAccountConfirmedIcon(account) ?? '')
             // .attr('x', -44)
             .attr('class', 'identity-icon')
             .attr('y', -7)
             .attr('opacity', (account: Account) => (getAccountConfirmedIcon(account) ? 1.0 : 0));
-        // append display
-        accountLabel
+        accountLabelEnter
             .append('text')
             .attr('class', 'account-display-label')
             .attr('x', (account: Account) => (getAccountConfirmedIcon(account) ? '18px' : '0'))
@@ -363,8 +389,7 @@ class Graph {
             //.attr('text-anchor', 'middle')
             .text((account: Account) => getAccountDisplay(account))
             .style('pointer-events', 'none');
-        // append balance label
-        accountLabel
+        accountLabelEnter
             .append('text')
             .attr('id', (account: Account) => `account-balance-label-${account.address}`)
             .attr('class', 'account-balance-label')
@@ -373,12 +398,12 @@ class Graph {
                 formatNumber(account.balance, Polkadot.DECIMAL_COUNT, 2, 'DOT'),
             )
             .style('pointer-events', 'none');
-        // append identicon
-        accountLabel
+        accountLabelEnter
             .append('g')
-            .attr('id', (account: Account) => `account-identicon-${account.address}`)
-            .html((account: Account) => getIdenticon(account.address, 24))
+            .attr('id', (d) => `account-identicon-${d.address}`)
+            .html((d) => getIdenticon(d.address))
             .style('pointer-events', 'none');
+        accountLabel = this.accountGroup.selectAll('g').data(this.accounts, (a: any) => a.address);
 
         this.svg
             .call(
@@ -387,11 +412,10 @@ class Graph {
                     .zoom()
                     .extent([
                         [0, 0],
-                        [width, height],
+                        [window.innerWidth, window.innerHeight],
                     ])
                     .scaleExtent([0.2, 8])
                     .on('zoom', (e) => {
-                        console.log(JSON.stringify(e.transform));
                         this.scale = e.transform.k;
                         this.transferGroup.attr('transform', e.transform);
                         this.accountGroup.attr('transform', e.transform);
@@ -399,19 +423,10 @@ class Graph {
             )
             .on('dblclick.zoom', null);
 
-        const simulation = d3
-            .forceSimulation(this.accounts)
-            .force(
-                'link',
-                d3
-                    .forceLink()
-                    // @ts-ignore
-                    .id((d) => d.address)
-                    .distance(LINK_DISTANCE)
-                    .links(this.transferVolumes),
-            )
-            .force('center', d3.forceCenter(width / 2, height / 2));
-        simulation.on('tick', () => {
+        this.simulation.nodes(this.accounts);
+        // @ts-ignore
+        this.simulation.force('link')!.links(this.transferVolumes);
+        this.simulation.on('tick', () => {
             this.tick(account, accountLabel, transfer, transferLabel);
         });
     }

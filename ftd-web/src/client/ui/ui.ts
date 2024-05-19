@@ -1,6 +1,3 @@
-import { Constants } from '../util/constants';
-import { createTween } from '../util/tween';
-import { show } from '../util/ui-util';
 import * as TWEEN from '@tweenjs/tween.js';
 import { EventBus } from '../event/event-bus';
 import { Graph } from './graph';
@@ -22,11 +19,9 @@ class UI {
     init() {
         this.animate();
         this.graph.append(DATA);
-        /*
         setTimeout(() => {
             this.graph.append(DATA_PT2);
-        }, 5000);
-         */
+        }, 2000);
     }
 
     animate() {
@@ -34,42 +29,6 @@ class UI {
             this.animate();
         });
         TWEEN.update();
-    }
-
-    private fadeInBackground(onComplete: () => void) {
-        this.background.style.opacity = '0%';
-        this.background.classList.remove('hidden');
-        show(this.background);
-        const opacity = { opacity: 0 };
-        createTween(
-            opacity,
-            { opacity: 80 },
-            TWEEN.Easing.Exponential.InOut,
-            Constants.CONTENT_FADE_ANIM_DURATION_MS,
-            undefined,
-            () => {
-                this.background.style.opacity = `${opacity.opacity}%`;
-            },
-            onComplete,
-        ).start();
-    }
-
-    private fadeInContent(onComplete?: () => void) {
-        this.content.style.opacity = '0%';
-        this.content.classList.remove('hidden');
-        show(this.content);
-        const opacity = { opacity: 0 };
-        createTween(
-            opacity,
-            { opacity: 100 },
-            TWEEN.Easing.Exponential.InOut,
-            Constants.CONTENT_FADE_ANIM_DURATION_MS,
-            undefined,
-            () => {
-                this.content.style.opacity = `${opacity.opacity}%`;
-            },
-            onComplete,
-        ).start();
     }
 }
 
