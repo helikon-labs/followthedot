@@ -179,10 +179,11 @@ class Graph {
                     .forceLink()
                     // @ts-ignore
                     .id((d) => d.address)
+                    .strength(0.8)
                     .distance(LINK_DISTANCE),
             )
-            .force('charge', d3.forceManyBody())
-            .force('center', d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
+            .force('charge', d3.forceManyBody().strength(-5000))
+            .force('center', d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2).strength(0.5));
         appendSVGMarkerDefs(this.svg);
     }
 
