@@ -1,20 +1,20 @@
 import * as d3 from 'd3';
+import { BaseType } from 'd3';
 import { Account, GraphData, Identity, TransferVolume } from '../model/ftd-model';
 import { formatNumber, trimText, truncateAddress } from '../util/format';
-import { BaseType } from 'd3';
 import { Constants, Polkadot } from '../util/constants';
 import { polkadotIcon } from '@polkadot/ui-shared';
 
 const LINK_DISTANCE = 400;
-const LINK_ARROW_SIZE = 8;
+const LINK_ARROW_SIZE = 10;
 const LINK_SEPARATION_OFFSET = 12;
 const ACCOUNT_RADIUS = 90;
+const BALANCE_DENOMINATOR = BigInt(10_000_000);
 
-type SVG = d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
-type SVG_CIRCLE = d3.Selection<BaseType | SVGCircleElement, unknown, SVGGElement, any>;
-type SVG_TEXT = d3.Selection<BaseType, unknown, SVGGElement, any>;
-type SVG_GROUP = d3.Selection<BaseType, unknown, SVGGElement, any>;
-type SVG_PATH = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
+type SVG_SVG_SELECTION = d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
+type SVG_CIRCLE_SELECTION = d3.Selection<BaseType | SVGCircleElement, unknown, SVGGElement, any>;
+type SVG_BASE_SELECTION = d3.Selection<BaseType, unknown, SVGGElement, any>;
+type SVG_TEXT_SELECTION = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
 
 enum LinkPosition {
     Left,
@@ -22,27 +22,26 @@ enum LinkPosition {
     Right,
 }
 
-const balanceStrokeScale = d3.scaleLinear([0n, 50_000_000_000n].map(Number), [1, 10]);
-const balanceColorScale = d3.scaleLinear([0n, 50_000_000_000n].map(Number), ['gray', 'blue']);
-const balanceOpacityScale = d3.scaleLinear([0n, 50_000_000_000n].map(Number), [0.75, 0.4]);
+let balanceStrokeScale: d3.ScaleLinear<number, number>;
+let balanceColorScale: d3.ScaleLinear<string, string>;
+let balanceOpacityScale: d3.ScaleLinear<number, number>;
 
-const transferStrokeScale = d3.scaleLinear([0n, 50_000_000n].map(Number), [0.5, 5]);
-const transferColorScale = d3.scaleLinear([0n, 50_000_000n].map(Number), ['gray', 'red']);
-const transferOpacityScale = d3.scaleLinear([0n, 50_000_000n].map(Number), [1.0, 0.25]);
+let transferStrokeScale: d3.ScaleLinear<number, number>;
+let transferColorScale: d3.ScaleLinear<string, string>;
+let transferOpacityScale: d3.ScaleLinear<number, number>;
 
 function getIdenticon(address: string): string {
     const circles = polkadotIcon(address, { isAlternative: false })
-        .map(({ cx, cy, fill, r }) => `<circle cx=${cx} cy=${cy} fill="${fill}" r=${r} />`)
+        .map(({ cx, cy, fill, r }) => `<circle class="identicon" cx=${cx} cy=${cy} fill="${fill}" r=${r} />`)
         .join('');
     return `${circles}`;
-    // return `<svg style="width; ${size}; height: ${size};" viewBox='0 0 64 64'>${circles}</svg>`;
 }
 
-function appendSVG(): SVG {
+function appendSVG(): SVG_SVG_SELECTION {
     const width = window.innerWidth;
     const height = window.innerHeight;
     return d3
-        .select('#chart-container')
+        .select('.graph-container')
         .append('svg')
         .attr('width', width)
         .attr('height', height)
@@ -50,7 +49,7 @@ function appendSVG(): SVG {
         .attr('style', 'max-width: 100%; max-height: 100%;');
 }
 
-function appendSVGMarkerDefs(svg: SVG) {
+function appendSVGMarkerDefs(svg: SVG_SVG_SELECTION) {
     svg.append('defs')
         .selectAll('marker')
         .data(['transfer'])
@@ -127,35 +126,38 @@ function transformAccountLabel(d: any, scale: number): string {
     const x = (groupWidth - identiconWidth) / 2 / scale;
     identicon.attr('transform', `translate(${x}, -46) scale(0.4, 0.4)`);
 
+    /*
+    const LABEL_FORCE_PADDING = ACCOUNT_RADIUS + 10;
     const width = window.innerWidth;
     const height = window.innerHeight;
-    d.x = d.x <= 5 ? 5 : d.x >= width - 5 ? width - 5 : d.x;
-    d.y = d.y <= 5 ? 5 : d.y >= height - 5 ? height - 5 : d.y;
+    d.x = d.x <= LABEL_FORCE_PADDING ? LABEL_FORCE_PADDING : d.x >= width - LABEL_FORCE_PADDING ? width - LABEL_FORCE_PADDING : d.x;
+    d.y = d.y <= LABEL_FORCE_PADDING ? LABEL_FORCE_PADDING : d.y >= height - LABEL_FORCE_PADDING ? height - LABEL_FORCE_PADDING : d.y;
+     */
     return 'translate(' + (d.x - groupWidth / scale / 2) + ',' + d.y + ')';
 }
 
 function getAccountStrokeWidth(account: Account): number {
-    return balanceStrokeScale(Number((account.balance / BigInt(10_000_000)).valueOf()));
+    return balanceStrokeScale(Number((account.balance / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getAccountStrokeColor(account: Account): string {
-    return balanceColorScale(Number((account.balance / BigInt(10_000_000)).valueOf()));
+    return balanceColorScale(Number((account.balance / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getAccountStrokeOpacity(account: Account): number {
-    return balanceOpacityScale(Number((account.balance / BigInt(10_000_000)).valueOf()));
+    return balanceOpacityScale(Number((account.balance / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getTransferStrokeWidth(transfer: TransferVolume): number {
-    return transferStrokeScale(Number((transfer.volume / BigInt(10_000_000)).valueOf()));
+    return transferStrokeScale(Number((transfer.volume / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getTransferStrokeColor(transfer: TransferVolume): string {
-    return transferColorScale(Number((transfer.volume / BigInt(10_000_000)).valueOf()));
+    return transferColorScale(Number((transfer.volume / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getTransferStrokeOpacity(transfer: TransferVolume): number {
-    return transferOpacityScale(Number((transfer.volume / BigInt(10_000_000)).valueOf()));
+    return transferOpacityScale(Number((transfer.volume / BALANCE_DENOMINATOR).valueOf()));
 }
 
 class Graph {
@@ -182,9 +184,28 @@ class Graph {
                     .strength(0.8)
                     .distance(LINK_DISTANCE),
             )
-            .force('charge', d3.forceManyBody().strength(-5000))
+            .force('charge', d3.forceManyBody().strength(-10000))
             .force('center', d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2).strength(0.5));
+            //.force('x', d3.forceX(window.innerWidth / 2))
+            //.force('y', d3.forceY(window.innerHeight / 2));
         appendSVGMarkerDefs(this.svg);
+        this.svg
+            .call(
+                // @ts-ignore
+                d3
+                    .zoom()
+                    .extent([
+                        [0, 0],
+                        [window.innerWidth, window.innerHeight],
+                    ])
+                    .scaleExtent([0.2, 8])
+                    .on('zoom', (e) => {
+                        this.scale = e.transform.k;
+                        this.transferGroup.attr('transform', e.transform);
+                        this.accountGroup.attr('transform', e.transform);
+                    }),
+            )
+            .on('dblclick.zoom', null);
     }
 
     private getLinkTranslation(linkPosition: LinkPosition, point0: any, point1: any) {
@@ -215,14 +236,14 @@ class Graph {
     }
 
     private tick(
-        account: SVG_CIRCLE,
-        accountLabel: SVG_GROUP,
-        transfer: SVG_PATH,
-        transferLabel: SVG_TEXT,
+        accounts: SVG_CIRCLE_SELECTION,
+        accountLabels: SVG_BASE_SELECTION,
+        transfers: SVG_TEXT_SELECTION,
+        transferLabels: SVG_BASE_SELECTION,
     ) {
-        account.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y);
-        accountLabel.attr('transform', (d: any) => transformAccountLabel(d, this.scale));
-        transfer
+        accounts.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y);
+        accountLabels.attr('transform', (d: any) => transformAccountLabel(d, this.scale));
+        transfers
             .attr('d', (d: any) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`)
             .attr('transform', (d: any) => {
                 const translation = this.getLinkTranslation(d.linkPosition, d.source, d.target);
@@ -230,7 +251,7 @@ class Graph {
                 d.offsetY = translation.dy;
                 return `translate (${d.offsetX}, ${d.offsetY})`;
             });
-        transferLabel.attr('transform', (d: any) => {
+        transferLabels.attr('transform', (d: any) => {
             if (d.target.x < d.source.x) {
                 return (
                     'rotate(180,' +
@@ -265,39 +286,70 @@ class Graph {
         }
     }
 
-    remove(address: string) {
-        console.log('remove', address);
+    private resetScales() {
+        const maxBalance = this.accounts.reduce((acc, account) => {
+            const balance = account.balance / BALANCE_DENOMINATOR;
+            return (acc > balance) ? acc : balance;
+        }, 0);
+        balanceStrokeScale = d3.scaleLinear([0n, maxBalance].map(Number), [1, 10]);
+        balanceColorScale = d3.scaleLinear([0n, maxBalance].map(Number), ['gray', 'blue']);
+        balanceOpacityScale = d3.scaleLinear([0n, maxBalance].map(Number), [0.75, 0.4]);
+
+        const maxTransferVolume = this.transferVolumes.reduce((acc, transferVolume) => {
+            const volume = transferVolume.volume / BALANCE_DENOMINATOR;
+            return (acc > volume) ? acc : volume;
+        }, 0);
+        transferStrokeScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), [0.5, 5]);
+        transferColorScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), ['gray', 'red']);
+        transferOpacityScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), [1.0, 0.5]);
+    }
+
+    removeAccount(address: string) {
         this.accounts = this.accounts.filter((a) => a.address != address);
         this.transferVolumes = this.transferVolumes.filter(
             (t) => t.source.address != address && t.target.address != address,
         );
         this.resetTransferVolumeLinkPositions();
+        this.resetScales();
         this.display();
     }
 
-    append(data: GraphData) {
+    appendData(data: GraphData) {
         for (const account of data.accounts) {
             if (this.accounts.findIndex((a) => a.address === account.address) === -1) {
                 this.accounts.push({ ...account });
             }
         }
-        for (const transferVolume of data.transferVolumes) {
-            if (this.transferVolumes.findIndex((t) => t.id === transferVolume.id) === -1) {
-                this.transferVolumes.push({
-                    id: transferVolume.id,
-                    source: transferVolume.from,
-                    target: transferVolume.to,
-                    count: transferVolume.count,
-                    volume: transferVolume.volume,
-                });
+        for (const transfer of data.transferVolumes) {
+            if (this.transferVolumes.findIndex((t) => t.id === transfer.id) === -1) {
+                // check that all accounts exist
+                const fromIndex = this.accounts.findIndex((a) => transfer.from === a.address);
+                const toIndex = this.accounts.findIndex((a) => transfer.to === a.address);
+                if (fromIndex >= 0 && toIndex >= 0) {
+                    this.transferVolumes.push({
+                        id: transfer.id,
+                        source: transfer.from,
+                        target: transfer.to,
+                        count: transfer.count,
+                        volume: transfer.volume,
+                    });
+                } else {
+                    if (fromIndex < 0)  {
+                        console.error(`Transfer #${transfer.id} sender account ${transfer.from} not found.`);
+                    }
+                    if (toIndex < 0)  {
+                        console.error(`Transfer #${transfer.id} receipient account ${transfer.to} not found.`);
+                    }
+                }
             }
         }
         this.resetTransferVolumeLinkPositions();
+        this.resetScales();
         this.display();
     }
 
-    private display() {
-        const transfer = this.transferGroup
+    private displayTransfers(): SVG_BASE_SELECTION {
+        return this.transferGroup
             .selectAll('path.transfer')
             .data(this.transferVolumes, (d: any) => d.id)
             .join('path')
@@ -309,142 +361,148 @@ class Graph {
                 getTransferStrokeOpacity(transfer),
             )
             .attr('marker-end', 'url(#transfer)');
-        let transferLabel = this.transferGroup
-            .selectAll('text')
-            .data(this.transferVolumes, (d: any) => d.id);
-        const transferLabelEnter = transferLabel
-            .enter()
-            .append('text')
-            .attr('class', 'link-label')
-            .attr('text-anchor', 'middle')
-            //.attr('dy', '0.31em');
-            .attr('dy', '-0.25em');
-        transferLabelEnter
-            .append('textPath')
-            .attr('href', (d) => `#link-${d.id}`)
-            .attr('startOffset', '50%')
-            .text((d) => formatNumber(d.volume, Polkadot.DECIMAL_COUNT, 2, 'DOT'))
-            //.style('pointer-events', 'none')
-            .on('mouseover', function () {
-                d3.select(this).attr('cursor', 'pointer');
-            })
-            .on('mouseout', function () {});
-        transferLabel = this.transferGroup
-            .selectAll('text')
-            .data(this.transferVolumes, (d: any) => d.id);
-        transferLabel.exit().remove();
+    }
 
-        let account = this.accountGroup
-            .selectAll('circle.account')
-            .data(this.accounts, (d: any) => d.address);
-        const accountEnter = account
-            .enter()
-            .append('circle')
-            .attr('class', 'account')
-            //.attr('fill', '#DDD')
-            .attr('fill', '#FFF')
-            .attr('stroke', (account: Account) => getAccountStrokeColor(account))
-            .attr('stroke-width', (account: Account) => getAccountStrokeWidth(account))
-            .attr('stroke-opacity', (account: Account) => getAccountStrokeOpacity(account))
-            .attr('r', ACCOUNT_RADIUS)
-            .on('mouseover', function (e, d) {
-                d3.select(this).attr('fill', '#EFEFEF');
-                d3.select(this).attr('cursor', 'pointer');
-            })
-            .on('mouseout', function (e, d) {
-                d3.select(this).attr('fill', '#FFF');
-            })
-            .on('dblclick', (e, d) => {
-                this.remove(d.address);
-            });
-        accountEnter.append('title').text((d) => truncateAddress(d.address));
-        accountEnter.call(
-            // @ts-ignore
-            d3
-                .drag()
-                .on('start', (event) => {
-                    if (!event.active) this.simulation.alphaTarget(0.3).restart();
-                    event.subject.fx = event.subject.x;
-                    event.subject.fy = event.subject.y;
-                })
-                .on('drag', (event) => {
-                    event.subject.fx = event.x;
-                    event.subject.fy = event.y;
-                })
-                .on('end', (event) => {
-                    if (!event.active) this.simulation.alphaTarget(0);
-                    event.subject.fx = null;
-                    event.subject.fy = null;
-                }),
-        );
-        account.exit().remove();
-        account = this.accountGroup
-            .selectAll('circle.account')
-            .data(this.accounts, (d: any) => d.address);
+    private displayTransferLabels(): SVG_BASE_SELECTION {
+        return this.transferGroup
+            .selectAll('text.transfer-label')
+            .data(this.transferVolumes, (d: any) => d.id)
+            .join(
+                enter => {
+                    const transferLabels = enter
+                        .append('text')
+                        .attr('class', 'transfer-label')
+                        .attr('text-anchor', 'middle')
+                        //.attr('dy', '0.31em');
+                        .attr('dy', '-0.25em');
+                    transferLabels
+                        .append('textPath')
+                        .attr('href', (d) => `#link-${d.id}`)
+                        .attr('startOffset', '50%')
+                        .text((d) => formatNumber(d.volume, Polkadot.DECIMAL_COUNT, 2, 'DOT'))
+                        //.style('pointer-events', 'none')
+                        .on('mouseover', function () {
+                            d3.select(this).attr('cursor', 'pointer');
+                        })
+                        .on('mouseout', function () {});
+                    return transferLabels;
+                },
+                undefined,
+                exit => exit.remove(),
+            );
+    }
 
-        let accountLabel = this.accountGroup
+    private displayAccounts(): SVG_BASE_SELECTION {
+        return this.accountGroup
+            .selectAll('circle.account')
+            .data(this.accounts, (d: any) => d.address)
+            .join(
+                enter => {
+                    const accounts = enter
+                        .append('circle')
+                        .attr('class', 'account')
+                        //.attr('fill', '#DDD')
+                        .attr('fill', '#FFF')
+                        .attr('stroke', (account: Account) => getAccountStrokeColor(account))
+                        .attr('stroke-width', (account: Account) => getAccountStrokeWidth(account))
+                        .attr('stroke-opacity', (account: Account) => getAccountStrokeOpacity(account))
+                        .attr('r', ACCOUNT_RADIUS)
+                        .on('mouseover', function (e, d) {
+                            d3.select(this).attr('fill', '#EFEFEF');
+                            d3.select(this).attr('cursor', 'pointer');
+                        })
+                        .on('mouseout', function (e, d) {
+                            d3.select(this).attr('fill', '#FFF');
+                        })
+                        .on('dblclick', (e, d) => {
+                            this.removeAccount(d.address);
+                        });
+                    accounts.append('title').text((d) => truncateAddress(d.address));
+                    accounts.call(
+                        // @ts-ignore
+                        d3
+                            .drag()
+                            .on('start', (event) => {
+                                if (!event.active) this.simulation.alphaTarget(0.3).restart();
+                                event.subject.fx = event.subject.x;
+                                event.subject.fy = event.subject.y;
+                            })
+                            .on('drag', (event) => {
+                                event.subject.fx = event.x;
+                                event.subject.fy = event.y;
+                            })
+                            .on('end', (event) => {
+                                if (!event.active) this.simulation.alphaTarget(0);
+                                event.subject.fx = null;
+                                event.subject.fy = null;
+                            }),
+                    );
+                    return accounts;
+                },
+                undefined,
+                exit => exit.remove(),
+            );
+    }
+
+    private displayAccountLabels(): SVG_BASE_SELECTION {
+        return this.accountGroup
             .selectAll('g.account-label')
-            .data(this.accounts, (a: any) => a.address);
-        const accountLabelEnter = accountLabel
-            .enter()
-            .append('g')
-            .attr('id', (account: Account) => `account-label-${account.address}`)
-            .attr('class', 'account-label');
-        accountLabelEnter
-            .append('svg:image')
-            .attr('xlink:href', (account: Account) => getAccountConfirmedIcon(account) ?? '')
-            // .attr('x', -44)
-            .attr('class', 'identity-icon')
-            .attr('y', -7)
-            .attr('opacity', (account: Account) => (getAccountConfirmedIcon(account) ? 1.0 : 0));
-        accountLabelEnter
-            .append('text')
-            .attr('class', 'account-display-label')
-            .attr('x', (account: Account) => (getAccountConfirmedIcon(account) ? '18px' : '0'))
-            .attr('y', '.31em')
-            //.attr('text-anchor', 'middle')
-            .text((account: Account) => getAccountDisplay(account))
-            .style('pointer-events', 'none');
-        accountLabelEnter
-            .append('text')
-            .attr('id', (account: Account) => `account-balance-label-${account.address}`)
-            .attr('class', 'account-balance-label')
-            //.attr('text-anchor', 'middle')
-            .text((account: Account) =>
-                formatNumber(account.balance, Polkadot.DECIMAL_COUNT, 2, 'DOT'),
+            .data(this.accounts, (a: any) => a.address)
+            .join(
+                enter => {
+                    const accountLabel = enter
+                        .append('g')
+                        .attr('id', (account: Account) => `account-label-${account.address}`)
+                        .attr('class', 'account-label');
+                    accountLabel
+                        .append('svg:image')
+                        .attr('xlink:href', (account: Account) => getAccountConfirmedIcon(account) ?? '')
+                        // .attr('x', -44)
+                        .attr('class', 'identity-icon')
+                        .attr('y', -7)
+                        .attr('opacity', (account: Account) => (getAccountConfirmedIcon(account) ? 1.0 : 0));
+                    accountLabel
+                        .append('text')
+                        .attr('class', 'account-display-label')
+                        .attr('x', (account: Account) => (getAccountConfirmedIcon(account) ? '18px' : '0'))
+                        .attr('y', '.31em')
+                        //.attr('text-anchor', 'middle')
+                        .text((account: Account) => getAccountDisplay(account))
+                        .style('pointer-events', 'none');
+                    accountLabel
+                        .append('text')
+                        .attr('id', (account: Account) => `account-balance-label-${account.address}`)
+                        .attr('class', 'account-balance-label')
+                        //.attr('text-anchor', 'middle')
+                        .text((account: Account) =>
+                            formatNumber(account.balance, Polkadot.DECIMAL_COUNT, 2, 'DOT'),
+                        )
+                        .style('pointer-events', 'none');
+                    accountLabel
+                        .append('g')
+                        .attr('id', (d) => `account-identicon-${d.address}`)
+                        .html((d) => getIdenticon(d.address))
+                        .style('pointer-events', 'none');
+                    return accountLabel;
+                },
+                undefined,
+                exit => exit.remove(),
             )
-            .style('pointer-events', 'none');
-        accountLabelEnter
-            .append('g')
-            .attr('id', (d) => `account-identicon-${d.address}`)
-            .html((d) => getIdenticon(d.address))
-            .style('pointer-events', 'none');
-        accountLabel.exit().remove();
-        accountLabel = this.accountGroup.selectAll('g').data(this.accounts, (a: any) => a.address);
+    }
 
-        this.svg
-            .call(
-                // @ts-ignore
-                d3
-                    .zoom()
-                    .extent([
-                        [0, 0],
-                        [window.innerWidth, window.innerHeight],
-                    ])
-                    .scaleExtent([0.2, 8])
-                    .on('zoom', (e) => {
-                        this.scale = e.transform.k;
-                        this.transferGroup.attr('transform', e.transform);
-                        this.accountGroup.attr('transform', e.transform);
-                    }),
-            )
-            .on('dblclick.zoom', null);
+    private display() {
+        // update components
+        const transfers = this.displayTransfers();
+        const transferLabels = this.displayTransferLabels();
+        const accounts = this.displayAccounts();
+        const accountLabel = this.displayAccountLabels();
 
+        // update simulation
         this.simulation.nodes(this.accounts);
         // @ts-ignore
         this.simulation.force('link')!.links(this.transferVolumes);
         this.simulation.on('tick', () => {
-            this.tick(account, accountLabel, transfer, transferLabel);
+            this.tick(accounts, accountLabel, transfers, transferLabels);
         });
     }
 }

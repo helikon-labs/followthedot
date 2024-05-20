@@ -4,7 +4,7 @@
         <title>followthedot by Helikon</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" type="image/png" href="./img/icon/favicon.png" />
+        <link rel="icon" type="image/png" href="./img/icon/favicon.ico" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -27,15 +27,35 @@
         ></script>
         <script src="https://kit.fontawesome.com/ebf2cd1147.js" crossorigin="anonymous"></script>
     </head>
-    <body id="root">
+    <body id="root" class="open-sans">
         <script src="./bundle.js"></script>
-        <div id="chart-container" style="text-align: center; width: 100%; height: 100%"></div>
+        <div class="graph-container"></div>
         <div class="left-panel">
             <div class="logo-container">
                 <img alt="Follow the DOT" src="./img/icon/ftd-icon.svg" />
                 <span>followthedot.live</span>
             </div>
             <div class="flex-spacer"></div>
+        </div>
+        <div class="right-panel"></div>
+        <div class="search-bar-container">
+            <input type="text" class="open-sans" id="search-input" />
+            <label class="fas fa-search" for="search-input"></label>
+            <div class="search-loader"></div>
+        </div>
+        <div class="search-result-container">
+            <div class="search-result">
+                <span>Asd #1.</span>
+            </div>
+            <div class="search-result">
+                <span>Asd #2.</span>
+            </div>
+            <div class="search-result">
+                <span>Asd #3.</span>
+            </div>
+            <div class="search-result">
+               <span> Asd #4.</span>
+            </div>
         </div>
     </body>
 </html>

@@ -35,7 +35,7 @@ const DATA: GraphData = {
             identity: undefined,
             subIdentity: undefined,
             superIdentity: undefined,
-            balance: BigInt('541823390036478265'),
+            balance: BigInt('12123390036478265'),
         },
     ],
     transferVolumes: [

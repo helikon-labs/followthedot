@@ -18,9 +18,9 @@ class UI {
 
     init() {
         this.animate();
-        this.graph.append(DATA);
+        this.graph.appendData(DATA);
         setTimeout(() => {
-            this.graph.append(DATA_PT2);
+            this.graph.appendData(DATA_PT2);
         }, 2000);
     }
 
