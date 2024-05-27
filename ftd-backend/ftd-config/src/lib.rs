@@ -90,12 +90,21 @@ pub struct Neo4JConfig {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+pub struct APIConfig {
+    pub request_timeout_seconds: u64,
+    pub service_host: String,
+    pub api_service_port: u16,
+    pub account_search_limit: u16,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct MetricsConfig {
     pub host: String,
     pub indexer_port: u16,
     pub transfer_volume_updater_port: u16,
     pub identity_updater_port: u16,
     pub balance_updater_port: u16,
+    pub api_service_port: u16,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -105,6 +114,7 @@ pub struct Config {
     pub postgres: PostgreSQLConfig,
     pub neo4j: Neo4JConfig,
     pub substrate: SubstrateConfig,
+    pub api: APIConfig,
     pub indexer: IndexerConfig,
     pub identity_updater: IdentityUpdaterConfig,
     pub metrics: MetricsConfig,

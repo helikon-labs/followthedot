@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use ftd_config::Config;
 use ftd_service::Service;
-use lazy_static::lazy_static;
 use ftd_substrate_client::SubstrateClient;
+use lazy_static::lazy_static;
 
 mod metrics;
 

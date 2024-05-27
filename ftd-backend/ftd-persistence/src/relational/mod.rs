@@ -1,4 +1,5 @@
 use crate::{CONFIG, REDENOMINATION_BLOCK_NUMBER};
+use ftd_types::api::{Identity as APIIdentity, SubIdentity as APISubIdentity};
 use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::TransferEvent;
 use ftd_types::substrate::identity::{Identity, SubIdentity};
@@ -142,5 +143,40 @@ impl RelationalStorage {
         self.postgres
             .set_identity_updater_state(block_hash, block_number, is_successful, error_log)
             .await
+    }
+
+    pub async fn search_identities(
+        &self,
+        query: &str,
+        limit: u16,
+    ) -> anyhow::Result<Vec<APIIdentity>> {
+        self.postgres
+            .search_identities_by_display(query, limit)
+            .await
+    }
+
+    pub async fn get_sub_identities(&self, address: &str) -> anyhow::Result<Vec<APISubIdentity>> {
+        self.postgres.get_sub_identities(address).await
+    }
+
+    pub async fn search_sub_identities(
+        &self,
+        query: &str,
+        limit: u16,
+    ) -> anyhow::Result<Vec<APISubIdentity>> {
+        self.postgres
+            .search_sub_identities_by_sub_display(query, limit)
+            .await
+    }
+
+    pub async fn search_addresses(&self, query: &str, limit: u16) -> anyhow::Result<Vec<String>> {
+        self.postgres.search_addresses(query, limit).await
+    }
+
+    pub async fn get_identity_by_address(
+        &self,
+        address: &str,
+    ) -> anyhow::Result<Option<APIIdentity>> {
+        self.postgres.get_identity_by_address(address).await
     }
 }

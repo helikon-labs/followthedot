@@ -1,14 +1,19 @@
 use crate::storage_utility::{
     account_id_from_storage_key, decode_hex_string, get_rpc_paged_keys_params,
-    get_rpc_storage_plain_params,
+    get_rpc_storage_plain_params, get_storage_plain_key, hash,
 };
+use frame_metadata::v14::StorageHasher;
 use ftd_config::Config;
+use ftd_types::substrate::account_id::AccountId;
+use ftd_types::substrate::balance::Balance;
 use ftd_types::substrate::block::BlockHeader;
 use ftd_types::substrate::chain::Chain;
 use ftd_types::substrate::identity::{Identity, SubIdentity};
+use ftd_types::substrate::{AccountData, AccountInfo};
 use jsonrpsee::ws_client::WsClientBuilder;
 use jsonrpsee_core::client::{Client, ClientT};
 use jsonrpsee_core::rpc_params;
+use parity_scale_codec::{Decode, Encode};
 use sp_core::storage::StorageChangeSet;
 use std::str::FromStr;
 
@@ -188,5 +193,38 @@ impl SubstrateClient {
             .await?;
         log::info!("Got {} balance keys.", keys.len());
         Ok(())
+    }
+
+    pub async fn get_balance(
+        &self,
+        account_id: AccountId,
+        _block_hash: &str,
+    ) -> anyhow::Result<Option<Balance>> {
+        let storage_key_hex = get_storage_plain_key("System", "Account");
+        let hasher = StorageHasher::Blake2_128Concat;
+        let key_hash = hash(&hasher, &account_id.encode());
+        let key_hex: String = hex::encode(key_hash);
+        let keys = vec![format!("{storage_key_hex}{key_hex}")];
+        let values: Vec<StorageChangeSet<String>> = self
+            .ws_client
+            .request("state_queryStorageAt", rpc_params!(keys))
+            .await?;
+        if let Some(change_set) = values.first() {
+            if let Some((_, Some(data))) = change_set.changes.first() {
+                let mut bytes: &[u8] = &data.0;
+                // decode account info
+                let account_info: AccountInfo<u32, AccountData<u128>> = Decode::decode(&mut bytes)?;
+                let account_data = account_info.data;
+                Ok(Some(Balance {
+                    free: account_data.free,
+                    reserved: account_data.reserved,
+                    frozen: account_data.frozen,
+                }))
+            } else {
+                Ok(None)
+            }
+        } else {
+            Ok(None)
+        }
     }
 }

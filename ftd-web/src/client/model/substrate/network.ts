@@ -11,6 +11,8 @@ interface Network {
     readonly ss58Prefix: number;
     readonly logo: string;
     readonly rpcURL: string;
+    readonly apiHost: string;
+    readonly apiPort: number;
 }
 
 const KUSAMA: Network = {
@@ -21,6 +23,8 @@ const KUSAMA: Network = {
     ss58Prefix: 2,
     logo: 'kusama.svg',
     rpcURL: Constants.KUSAMA_RPC_URL,
+    apiHost: 'kusama.api.followthedot.live',
+    apiPort: 17654,
 };
 
 const POLKADOT: Network = {
@@ -31,6 +35,8 @@ const POLKADOT: Network = {
     ss58Prefix: 0,
     logo: 'polkadot-circle.svg',
     rpcURL: Constants.POLKADOT_RPC_URL,
+    apiHost: 'polkadot.api.followthedot.live',
+    apiPort: 17654,
 };
 
 export { Network, KUSAMA, POLKADOT };

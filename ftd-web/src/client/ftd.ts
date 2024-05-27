@@ -12,7 +12,7 @@ class FTD {
     private network: Network = POLKADOT;
 
     constructor() {
-        this.ui = new UI();
+        this.ui = new UI(this.network);
         this.dataStore = new DataStore();
         // substrate api events
         this.eventBus.register(FTDEvent.SUBSTRATE_API_READY, () => {

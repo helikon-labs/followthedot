@@ -1,3 +1,12 @@
+import { trimText, truncateAddress } from '../util/format';
+import { Constants } from '../util/constants';
+
+interface Balance {
+    free: bigint,
+    reserved: bigint,
+    frozen: bigint,
+}
+
 interface Identity {
     address: string;
     display?: string;
@@ -21,7 +30,18 @@ interface Account {
     identity?: Identity;
     subIdentity?: SubIdentity;
     superIdentity?: Identity;
-    balance: bigint;
+    balance: Balance;
+}
+
+function getAccountDisplay(account: Account): string {
+    if (account.identity?.display) {
+        return trimText(account.identity.display, Constants.MAX_IDENTITY_DISPLAY_LENGTH);
+    }
+    if (account.superIdentity?.display && account.subIdentity?.subDisplay) {
+        const display = `${account.subIdentity.subDisplay} / ${account.superIdentity.display}`;
+        return trimText(display, Constants.MAX_IDENTITY_DISPLAY_LENGTH);
+    }
+    return truncateAddress(account.address);
 }
 
 interface TransferVolume {
@@ -37,4 +57,4 @@ interface GraphData {
     transferVolumes: TransferVolume[];
 }
 
-export { Identity, SubIdentity, Account, TransferVolume, GraphData };
+export { Identity, SubIdentity, Account, TransferVolume, GraphData, getAccountDisplay };

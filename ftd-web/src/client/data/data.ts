@@ -12,7 +12,11 @@ const DATA: GraphData = {
             },
             subIdentity: undefined,
             superIdentity: undefined,
-            balance: BigInt('17943564783'),
+            balance: {
+                free: BigInt('17943564783'),
+                reserved: BigInt('0'),
+                frozen: BigInt('0'),
+            },
         },
         {
             address: '12WLDL2AXoH3MHr1xj8K4m9rCcRKSWKTUz8A4mX3ah5khJBn',
@@ -28,14 +32,22 @@ const DATA: GraphData = {
                 isConfirmed: true,
                 isInvalid: false,
             },
-            balance: BigInt('27640026374856'),
+            balance: {
+                free: BigInt('27640026374856'),
+                reserved: BigInt('0'),
+                frozen: BigInt('0'),
+            },
         },
         {
             address: '114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5',
             identity: undefined,
             subIdentity: undefined,
             superIdentity: undefined,
-            balance: BigInt('12123390036478265'),
+            balance: {
+                free: BigInt('12123390036478265'),
+                reserved: BigInt('0'),
+                frozen: BigInt('0'),
+            },
         },
     ],
     transferVolumes: [
@@ -77,21 +89,33 @@ const DATA_PT2: GraphData = {
             identity: undefined,
             subIdentity: undefined,
             superIdentity: undefined,
-            balance: BigInt('541823390036478265'),
+            balance: {
+                free: BigInt('541823390036478265'),
+                reserved: BigInt('0'),
+                frozen: BigInt('0'),
+            },
         },
         {
             address: '13iTiojfEzSXLprKzvE7Sdmg8gtUD2S2Am2Xv61xrtmDHcvJ',
             identity: undefined,
             subIdentity: undefined,
             superIdentity: undefined,
-            balance: BigInt('3985935463521'),
+            balance: {
+                free: BigInt('3985935463521'),
+                reserved: BigInt('0'),
+                frozen: BigInt('0'),
+            },
         },
         {
             address: '14N5GT7YTaDBSsLpfxxtCxNdYfgDofGj5wQSfqC1URKHdT8C',
             identity: undefined,
             subIdentity: undefined,
             superIdentity: undefined,
-            balance: BigInt('8941294673827'),
+            balance: {
+                free: BigInt('8941294673827'),
+                reserved: BigInt('0'),
+                frozen: BigInt('0'),
+            },
         },
     ],
     transferVolumes: [

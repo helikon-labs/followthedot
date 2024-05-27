@@ -10,7 +10,7 @@ pub fn _processed_account() -> IntGauge {
             "processed_account",
             "Last processed account",
         )
-            .unwrap()
+        .unwrap()
     });
     METER.clone()
 }

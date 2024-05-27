@@ -11,6 +11,7 @@ pub fn init(config: &Config) {
     let mut builder = Builder::from_env(Env::default());
     builder.target(Target::Stdout);
     builder.filter(None, other_modules_log_level);
+    builder.filter(Some("ftd_api_service"), log_level);
     builder.filter(Some("ftd_graph_updater"), log_level);
     builder.filter(Some("ftd_identity_updater"), log_level);
     builder.filter(Some("ftd_indexer"), log_level);

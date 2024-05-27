@@ -14,4 +14,5 @@ jsonrpsee = { workspace = true, features = ["full"] }
 jsonrpsee-core = { workspace = true }
 jsonrpsee-types = { workspace = true }
 log = { workspace = true }
+parity-scale-codec = "3.6"
 sp-core = { workspace = true }

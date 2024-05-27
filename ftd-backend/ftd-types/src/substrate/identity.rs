@@ -1,5 +1,4 @@
 use crate::substrate::account_id::AccountId;
-use crate::substrate::balance::Balance;
 use frame_support::pallet_prelude::ConstU32;
 use pallet_identity::legacy::IdentityInfo;
 use pallet_identity::{Data, Judgement, Registration};
@@ -36,7 +35,7 @@ pub struct Identity {
 impl Identity {
     pub fn from_bytes(account_id: AccountId, mut bytes: &[u8]) -> anyhow::Result<Self> {
         let registration: Registration<
-            Balance,
+            u128,
             ConstU32<{ u32::MAX }>,
             IdentityInfo<ConstU32<{ u32::MAX }>>,
         > = Decode::decode(&mut bytes)?;

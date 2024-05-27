@@ -32,6 +32,12 @@ token_ticker = "DOT"
 token_decimals = 10
 token_format_decimal_points = 4
 
+[api]
+request_timeout_seconds = 60
+service_host = "0.0.0.0"
+api_service_port = 7900
+account_search_limit = 25
+
 [indexer]
 start_block_number = 12_000_000
 # end_block_number = 12_000_500
@@ -46,3 +52,4 @@ indexer_port = 11000
 transfer_volume_updater_port = 11010
 identity_updater_port = 11011
 balance_updater_port = 11012
+api_service_port = 11013

@@ -4,4 +4,12 @@ const setAsyncTimeout = (callback: (value: (value: unknown) => void) => void, ti
         setTimeout(() => reject('Request is taking too long to response'), timeout);
     });
 
-export { setAsyncTimeout };
+async function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, ms);
+    });
+}
+
+export { setAsyncTimeout, sleep };
