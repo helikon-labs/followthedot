@@ -24,7 +24,7 @@ const KUSAMA: Network = {
     logo: 'kusama.svg',
     rpcURL: Constants.KUSAMA_RPC_URL,
     apiHost: 'kusama.api.followthedot.live',
-    apiPort: 17654,
+    apiPort: 11210,
 };
 
 const POLKADOT: Network = {
@@ -36,7 +36,7 @@ const POLKADOT: Network = {
     logo: 'polkadot-circle.svg',
     rpcURL: Constants.POLKADOT_RPC_URL,
     apiHost: 'polkadot.api.followthedot.live',
-    apiPort: 17654,
+    apiPort: 11200,
 };
 
 export { Network, KUSAMA, POLKADOT };

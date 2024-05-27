@@ -292,7 +292,7 @@ class Graph {
 
     private resetScales() {
         const maxBalance = this.accounts.reduce((acc, account) => {
-            const balance = account.balance / BALANCE_DENOMINATOR;
+            const balance = account.balance.free / BALANCE_DENOMINATOR;
             return acc > balance ? acc : balance;
         }, 0);
         balanceStrokeScale = d3.scaleLinear([0n, maxBalance].map(Number), [1, 10]);

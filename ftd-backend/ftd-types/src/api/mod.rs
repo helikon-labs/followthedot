@@ -2,6 +2,7 @@ use crate::substrate::balance::Balance;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Identity {
     pub address: String,
     pub display: Option<String>,
@@ -15,6 +16,7 @@ pub struct Identity {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SubIdentity {
     pub address: String,
     pub super_address: String,
@@ -22,6 +24,7 @@ pub struct SubIdentity {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Account {
     pub address: String,
     pub identity: Option<Identity>,
