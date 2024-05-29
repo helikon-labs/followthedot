@@ -12,13 +12,13 @@ class API {
     }
 
     private getBasePath(): string {
-        return 'https://' + this.host + ':' + this.port + '/';
+        return 'https://' + this.host + ':' + this.port;
     }
 
     async searchAccount(query: string): Promise<Account[]> {
         return await (
             await fetch(
-                this.getBasePath() + 'account?' + new URLSearchParams({ query: query }).toString(),
+                this.getBasePath() + '/account?' + new URLSearchParams({ query: query }).toString(),
                 {
                     method: 'GET',
                     headers: {},
@@ -27,9 +27,17 @@ class API {
         ).json();
     }
 
-    async getAccount(address: string): Promise<GraphData> {
-        await sleep(1000);
-        return DATA;
+    async getAccountGraph(address: string): Promise<GraphData> {
+        alert(`${this.getBasePath()}/account/${address}/graph`)
+        return await (
+            await fetch(
+                `${this.getBasePath()}/account/${address}/graph`,
+                {
+                    method: 'GET',
+                    headers: {},
+                },
+            )
+        ).json();
     }
 }
 

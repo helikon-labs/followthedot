@@ -5,3 +5,7 @@ rpc_url = "wss://rpc.helikon.io:443/kusama"
 sidecar_url = "https://sidecar.helikon.io/kusama"
 token_ticker = "KSM"
 token_decimals = 12
+
+[subscan]
+api_key = "subscan_api_key"
+account_data_url = "https://kusama.api.subscan.io/api/v2/scan/search"

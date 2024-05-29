@@ -23,7 +23,7 @@ class UI {
         this.background = <HTMLDivElement>document.getElementById('background');
         this.content = <HTMLDivElement>document.getElementById('content');
         this.searchBar = new SearchBar(network, (account: Account) => {
-            this.loadAccount(account);
+            this.loadAccountGraph(account);
         });
         this.loading = <HTMLDivElement>document.getElementById('loading-container');
         this.api = new API(network.apiHost, network.apiPort);
@@ -45,12 +45,12 @@ class UI {
         TWEEN.update();
     }
 
-    private async loadAccount(account: Account) {
+    private async loadAccountGraph(account: Account) {
         this.graph.reset();
         this.searchBar.disable();
         show(this.loading);
         try {
-            const data = await this.api.getAccount(account.address);
+            const data = await this.api.getAccountGraph(account.address);
             hide(this.loading);
             this.graph.appendData(data);
             this.searchBar.enable();

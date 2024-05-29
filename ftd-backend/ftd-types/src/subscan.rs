@@ -6,19 +6,19 @@ pub struct SubscanGetAccountByAddressBody {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct SubscanAccountSearchResult {
     pub data: SubscanAccountData,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct SubscanAccountData {
     pub account: SubscanAccount,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct SubscanAccount {
     pub address: String,
     pub display: Option<String>,
@@ -26,7 +26,7 @@ pub struct SubscanAccount {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct SubscanAccountDisplay {
     pub address: String,
     pub display: Option<String>,
@@ -36,7 +36,7 @@ pub struct SubscanAccountDisplay {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct SubscanParentAccountDisplay {
     pub address: String,
     pub display: Option<String>,
@@ -45,7 +45,7 @@ pub struct SubscanParentAccountDisplay {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct SubscanMerkleScienceAccountInfo {
     pub address_type: String,
     pub tag_type: Option<String>,

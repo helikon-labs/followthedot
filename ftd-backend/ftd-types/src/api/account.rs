@@ -14,7 +14,7 @@ pub struct Account {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct AccountGraph {
     pub accounts: Vec<Account>,
     pub transfer_volumes: Vec<TransferVolume>,

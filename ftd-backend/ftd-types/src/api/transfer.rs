@@ -1,7 +1,7 @@
 use frame_support::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename(serialize = "camelCase"))]
+#[serde(rename_all = "camelCase")]
 pub struct Transfer {
     pub block_hash: String,
     pub block_number: u64,
