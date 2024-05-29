@@ -1,8 +1,9 @@
 use crate::{ResultResponse, ServiceState, CONFIG};
 use actix_web::{get, web, HttpResponse};
-use ftd_types::api::Account;
+use ftd_types::api::account::{Account, AccountGraph};
 use ftd_types::err::ServiceError;
 use ftd_types::substrate::account_id::AccountId;
+use rustc_hash::FxHashSet as HashSet;
 use serde::Deserialize;
 use std::str::FromStr;
 
@@ -109,10 +110,65 @@ pub(crate) async fn account_search_service(
     }
     // get balances
     for account in accounts.iter_mut() {
-        // get balance
         let account_id = AccountId::from_str(account.address.as_str()).unwrap();
-        let balance = state.substrate_client.get_balance(account_id, "").await?;
+        let balance = state.substrate_client.get_balance(account_id, None).await?;
         account.balance = balance;
     }
     Ok(HttpResponse::Ok().json(accounts))
+}
+
+#[derive(Deserialize)]
+pub(crate) struct AccountGraphParameters {
+    address: String,
+}
+
+#[get("/account/{address}/graph")]
+pub(crate) async fn account_graph_service(
+    path: web::Path<AccountGraphParameters>,
+    state: web::Data<ServiceState>,
+) -> ResultResponse {
+    if AccountId::from_str(path.address.as_str()).is_err() {
+        return Ok(HttpResponse::BadRequest().json(ServiceError::from("Invalid address.")));
+    }
+    let transfer_volumes = state
+        .graph_storage
+        .get_transfer_volumes_for_account(path.address.as_str(), CONFIG.api.graph_search_limit)
+        .await?;
+    let mut addresses = HashSet::default();
+    transfer_volumes.iter().for_each(|transfer_volume| {
+        addresses.insert(transfer_volume.from.clone());
+        addresses.insert(transfer_volume.to.clone());
+    });
+    let mut accounts: Vec<Account> = Vec::new();
+    for address in addresses.iter() {
+        let account_id = AccountId::from_str(path.address.as_str()).unwrap();
+        let maybe_identity = state
+            .relational_storage
+            .get_identity_by_address(address)
+            .await?;
+        let maybe_sub_identity = state
+            .relational_storage
+            .get_sub_identity_by_address(address)
+            .await?;
+        let maybe_super_identity = if let Some(sub_identity) = &maybe_sub_identity {
+            state
+                .relational_storage
+                .get_identity_by_address(sub_identity.super_address.as_str())
+                .await?
+        } else {
+            None
+        };
+        let balance = state.substrate_client.get_balance(account_id, None).await?;
+        accounts.push(Account {
+            address: address.to_string(),
+            identity: maybe_identity,
+            sub_identity: maybe_sub_identity,
+            super_identity: maybe_super_identity,
+            balance,
+        })
+    }
+    Ok(HttpResponse::Ok().json(AccountGraph {
+        accounts,
+        transfer_volumes,
+    }))
 }

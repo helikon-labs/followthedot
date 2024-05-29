@@ -5,6 +5,7 @@ use ftd_persistence::graph::GraphStorage;
 use ftd_persistence::relational::RelationalStorage;
 use ftd_service::err::InternalServerError;
 use ftd_service::Service;
+use ftd_subscan_client::SubscanClient;
 use ftd_substrate_client::SubstrateClient;
 use futures_util::future::FutureExt;
 use lazy_static::lazy_static;
@@ -12,6 +13,7 @@ use std::sync::Arc;
 
 mod account;
 mod metrics;
+mod transfer;
 
 lazy_static! {
     static ref CONFIG: Config = Config::default();
@@ -22,8 +24,9 @@ pub(crate) type ResultResponse = Result<HttpResponse, InternalServerError>;
 #[derive(Clone)]
 pub(crate) struct ServiceState {
     relational_storage: Arc<RelationalStorage>,
-    _graph_storage: Arc<GraphStorage>,
+    graph_storage: Arc<GraphStorage>,
     substrate_client: Arc<SubstrateClient>,
+    _subscan_client: Arc<SubscanClient>,
 }
 
 async fn on_server_ready() {
@@ -46,14 +49,16 @@ impl Service for APIService {
         let graph_storage = Arc::new(GraphStorage::new().await?);
         let relational_storage = Arc::new(RelationalStorage::new().await?);
         let substrate_client = Arc::new(SubstrateClient::new(&CONFIG).await?);
+        let subscan_client = Arc::new(SubscanClient::new(&CONFIG)?);
 
         log::info!("Starting HTTP service.");
         let server = HttpServer::new(move || {
             App::new()
                 .app_data(web::Data::new(ServiceState {
                     relational_storage: relational_storage.clone(),
-                    _graph_storage: graph_storage.clone(),
+                    graph_storage: graph_storage.clone(),
                     substrate_client: substrate_client.clone(),
+                    _subscan_client: subscan_client.clone(),
                 }))
                 .wrap_fn(|request, service| {
                     metrics::request_counter().inc();
@@ -79,6 +84,8 @@ impl Service for APIService {
                     })
                 })
                 .service(account::account_search_service)
+                .service(account::account_graph_service)
+                .service(transfer::transfer_list_service)
         })
         .workers(10)
         .disable_signals()

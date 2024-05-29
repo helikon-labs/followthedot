@@ -1,5 +1,6 @@
 use crate::{CONFIG, REDENOMINATION_BLOCK_NUMBER};
-use ftd_types::api::{Identity as APIIdentity, SubIdentity as APISubIdentity};
+use ftd_types::api::identity::{Identity as APIIdentity, SubIdentity as APISubIdentity};
+use ftd_types::api::transfer::Transfer;
 use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::TransferEvent;
 use ftd_types::substrate::identity::{Identity, SubIdentity};
@@ -178,5 +179,22 @@ impl RelationalStorage {
         address: &str,
     ) -> anyhow::Result<Option<APIIdentity>> {
         self.postgres.get_identity_by_address(address).await
+    }
+
+    pub async fn get_sub_identity_by_address(
+        &self,
+        address: &str,
+    ) -> anyhow::Result<Option<APISubIdentity>> {
+        self.postgres.get_sub_identity_by_address(address).await
+    }
+
+    pub async fn get_transfers_by_sender_and_recipient(
+        &self,
+        from: &str,
+        to: &str,
+    ) -> anyhow::Result<Vec<Transfer>> {
+        self.postgres
+            .get_transfers_by_sender_and_recipient(from, to)
+            .await
     }
 }

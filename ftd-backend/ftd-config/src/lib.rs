@@ -95,6 +95,13 @@ pub struct APIConfig {
     pub service_host: String,
     pub api_service_port: u16,
     pub account_search_limit: u16,
+    pub graph_search_limit: u16,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct SubscanConfig {
+    pub api_key: String,
+    pub account_data_url: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -116,6 +123,7 @@ pub struct Config {
     pub substrate: SubstrateConfig,
     pub api: APIConfig,
     pub indexer: IndexerConfig,
+    pub subscan: SubscanConfig,
     pub identity_updater: IdentityUpdaterConfig,
     pub metrics: MetricsConfig,
 }

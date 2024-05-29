@@ -1,7 +1,7 @@
 use super::Neo4JStorage;
 use ftd_types::graph::TransferVolume;
 use ftd_types::substrate::event::TransferEvent;
-use neo4rs::{query, Relation, Txn};
+use neo4rs::{query, Node, Relation, Txn};
 
 impl Neo4JStorage {
     async fn get_transfer_volume(
@@ -17,7 +17,7 @@ impl Neo4JStorage {
                 MATCH (from:Account {address: $from}), (to:Account {address: $to})
                 MERGE (from)-[t:TRANSFER]->(to)
                 ON CREATE SET t.volume = '0', t.count = '0'
-                RETURN t
+                RETURN t, id(t) as t_id
                 "#,
                 )
                 .param("from", from)
@@ -25,12 +25,16 @@ impl Neo4JStorage {
             )
             .await?;
         let row = result.next(tx).await?.unwrap();
-        let relation = row.get::<Relation>("t")?;
+        let transfer_volume = row.get::<Relation>("t")?;
+        let transfer_volume_id = row.get::<u64>("t_id")?;
+        let count = transfer_volume.get::<String>("count")?.parse()?;
+        let volume = transfer_volume.get::<String>("volume")?.parse()?;
         Ok(TransferVolume {
+            id: transfer_volume_id,
             from: from.to_string(),
             to: to.to_string(),
-            count: relation.get::<String>("count")?.parse()?,
-            volume: relation.get::<String>("volume")?.parse()?,
+            count,
+            volume,
         })
     }
 
@@ -59,5 +63,50 @@ impl Neo4JStorage {
         )
         .await?;
         Ok(())
+    }
+
+    pub async fn get_transfer_volumes_for_account(
+        &self,
+        address: &str,
+        limit: u16,
+    ) -> anyhow::Result<Vec<TransferVolume>> {
+        let mut result = self
+            .graph
+            .execute(
+                query(
+                    r#"
+                MATCH (a:Account)-[t:TRANSFER]-(b:Account)
+                WHERE a.address = $address
+                RETURN b, t, id(t) as t_id, (startNode(t) = a) as is_from_a
+                LIMIT $limit
+                "#,
+                )
+                .param("address", address)
+                .param("limit", limit),
+            )
+            .await?;
+        let mut transfer_volumes = Vec::new();
+        while let Some(row) = result.next().await? {
+            let other = row.get::<Node>("b")?;
+            let other_address = other.get::<String>("address")?;
+            let transfer_volume = row.get::<Relation>("t")?;
+            let transfer_volume_id = row.get::<u64>("t_id")?;
+            let is_from_a = row.get::<bool>("is_from_a")?;
+            let (from, to) = if is_from_a {
+                (address, other_address.as_str())
+            } else {
+                (other_address.as_str(), address)
+            };
+            let count = transfer_volume.get::<String>("count")?.parse()?;
+            let volume = transfer_volume.get::<String>("volume")?.parse()?;
+            transfer_volumes.push(TransferVolume {
+                id: transfer_volume_id,
+                from: from.to_string(),
+                to: to.to_string(),
+                count,
+                volume,
+            });
+        }
+        Ok(transfer_volumes)
     }
 }

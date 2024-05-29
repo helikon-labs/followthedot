@@ -8,6 +8,7 @@ pub struct GraphUpdaterState {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TransferVolume {
+    pub id: u64,
     pub from: String,
     pub to: String,
     pub count: u32,

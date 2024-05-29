@@ -16,18 +16,13 @@ class API {
     }
 
     async searchAccount(query: string): Promise<Account[]> {
-        //await sleep(1000);
-        //const result = [];
-        //result.push(...DATA.accounts);
-        //return result;
         return await (
             await fetch(
-                this.getBasePath() + 'account?' +
-                new URLSearchParams({ query: query }).toString(),
+                this.getBasePath() + 'account?' + new URLSearchParams({ query: query }).toString(),
                 {
                     method: 'GET',
                     headers: {},
-                }
+                },
             )
         ).json();
     }

@@ -1,7 +1,7 @@
 import { hide, show } from '../util/ui-util';
 import { Network } from '../model/substrate/network';
 import { API } from '../api/api';
-import { Account, getAccountDisplay } from '../model/ftd-model';
+import { Account, getAccountConfirmedIcon, getAccountDisplay } from '../model/ftd-model';
 import { generateIdenticonSVGHTML } from '../util/identicon';
 
 interface UI {
@@ -67,9 +67,11 @@ class SearchBar {
         show(this.ui.animation);
         try {
             this.accounts = await this.api.searchAccount(query);
-            this.sortAccounts();
             hide(this.ui.animation);
-            this.displayAccounts();
+            if (this.accounts.length > 0) {
+                this.sortAccounts();
+                this.displayAccounts();
+            }
         } catch (error) {
             hide(this.ui.animation);
             alert(`Error while searching accounts: ${error}`);
@@ -88,7 +90,13 @@ class SearchBar {
         let html = '';
         this.accounts.forEach((account) => {
             const identiconHTML = generateIdenticonSVGHTML(account.address, 20);
-            html += `<div class="search-result" id="search-result-${account.address}">${identiconHTML}<span>${getAccountDisplay(account)}</span></div>`;
+            const display = getAccountDisplay(account);
+            let confirmedIconHTML = '';
+            const confirmedIcon = getAccountConfirmedIcon(account);
+            if (confirmedIcon) {
+                confirmedIconHTML = `<img src=${confirmedIcon} alt="${display}">`;
+            }
+            html += `<div class="search-result" id="search-result-${account.address}">${identiconHTML}${confirmedIconHTML}<span>${display}</span></div>`;
             setTimeout(() => {
                 const accountDiv = document.getElementById(`search-result-${account.address}`);
                 accountDiv?.addEventListener('click', (_event) => {

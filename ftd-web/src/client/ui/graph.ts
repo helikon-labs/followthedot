@@ -2,9 +2,9 @@ import * as d3 from 'd3';
 import { BaseType, Simulation, SimulationNodeDatum } from 'd3';
 import {
     Account,
+    getAccountConfirmedIcon,
     getAccountDisplay,
     GraphData,
-    Identity,
     TransferVolume,
 } from '../model/ftd-model';
 import { formatNumber, truncateAddress } from '../util/format';
@@ -56,7 +56,7 @@ function appendSVG(): SVG_SVG_SELECTION {
         .append('svg')
         .attr('width', width)
         .attr('height', height)
-        .attr('viewBox', [0, 0, width, height])
+        .attr("viewBox", [-width / 2, -height / 2, width, height])
         .attr('style', 'max-width: 100%; max-height: 100%;');
 }
 
@@ -75,28 +75,6 @@ function appendSVGMarkerDefs(svg: SVG_SVG_SELECTION) {
         .attr('markerUnits', 'userSpaceOnUse')
         .append('path')
         .attr('d', `M0,0L0,${LINK_ARROW_SIZE}L${LINK_ARROW_SIZE},${LINK_ARROW_SIZE / 2}z`);
-}
-
-function getAccountConfirmedIcon(account: Account): string | undefined {
-    function getIdentityConfirmedIcon(identity: Identity, isParent: boolean): string | undefined {
-        if (identity.isInvalid) {
-            return `./img/icon/${isParent ? 'parent-' : ''}id-invalid-icon.svg`;
-        }
-        if (identity.isConfirmed) {
-            return `./img/icon/${isParent ? 'parent-' : ''}id-confirmed-icon.svg`;
-        }
-        if (identity.isConfirmed) {
-            return `./img/icon/${isParent ? 'parent-' : ''}id-unconfirmed-icon.svg`;
-        }
-    }
-
-    if (account.superIdentity) {
-        return getIdentityConfirmedIcon(account.superIdentity, true);
-    }
-    if (account.identity) {
-        return getIdentityConfirmedIcon(account.identity, false);
-    }
-    return undefined;
 }
 
 function transformAccountLabel(d: any, scale: number): string {
@@ -185,10 +163,9 @@ class Graph {
                     .distance(LINK_DISTANCE),
             )
             .force('charge', d3.forceManyBody().strength(-10000))
-            .force(
-                'center',
-                d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2).strength(0.5),
-            );
+            .force('y', d3.forceY())
+            .force('x', d3.forceX())
+            //.force('center', d3.forceCenter(0 , 0).strength(0.1));
 
         //.force('x', d3.forceX(window.innerWidth / 2))
         //.force('y', d3.forceY(window.innerHeight / 2));
@@ -423,11 +400,13 @@ class Graph {
                             getAccountStrokeOpacity(account),
                         )
                         .attr('r', ACCOUNT_RADIUS)
-                        .on('mouseover', function () { /*function (e, d) {*/
+                        .on('mouseover', function () {
+                            /*function (e, d) {*/
                             d3.select(this).attr('fill', '#EFEFEF');
                             d3.select(this).attr('cursor', 'pointer');
                         })
-                        .on('mouseout', function () { /*function (e, d) {*/
+                        .on('mouseout', function () {
+                            /*function (e, d) {*/
                             d3.select(this).attr('fill', '#FFF');
                         })
                         .on('dblclick', (e, d) => {

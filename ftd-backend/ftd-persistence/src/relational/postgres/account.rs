@@ -1,5 +1,5 @@
 use super::PostgreSQLStorage;
-use ftd_types::api::{Identity, SubIdentity};
+use ftd_types::api::identity::{Identity, SubIdentity};
 use sqlx::{Postgres, Transaction};
 
 type IdentityRow = (
@@ -96,6 +96,23 @@ impl PostgreSQLStorage {
         .fetch_optional(&self.connection_pool)
         .await?;
         Ok(maybe_row.as_ref().map(row_into_identity))
+    }
+
+    pub async fn get_sub_identity_by_address(
+        &self,
+        address: &str,
+    ) -> anyhow::Result<Option<SubIdentity>> {
+        let maybe_row: Option<SubIdentityRow> = sqlx::query_as(
+            r#"
+            SELECT address, super_address, sub_display
+            FROM ftd_sub_identity
+            WHERE address = $1
+            "#,
+        )
+        .bind(address)
+        .fetch_optional(&self.connection_pool)
+        .await?;
+        Ok(maybe_row.as_ref().map(row_into_sub_identity))
     }
 
     pub async fn get_sub_identities(

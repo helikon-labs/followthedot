@@ -92,23 +92,25 @@ a:active {
     background: #0000000c;
 }
 
-.left-panel .logo-container {
+.logo-container {
+    position: fixed;
+    top: 16px;
+    left: 8px;
     display: flex;
     flex-direction: row;
-
     justify-content: flex-start;
     align-content: center;
     gap: 8px;
 }
 
-.left-panel .logo-container span {
+.logo-container span {
     font-family: 'Cutive Mono', monospace;
     font-weight: 400;
     font-style: normal;
     font-size: 18px;
 }
 
-.left-panel .logo-container img {
+.logo-container img {
     width: 18px;
 }
 
@@ -223,7 +225,7 @@ a:active {
 .search-result-container .search-result {
     height: 26px;
     font-size: 14px;
-    gap: 8px;
+    gap: 6px;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -234,6 +236,10 @@ a:active {
     padding-bottom: 8px;
     border-bottom: 1px solid #00000022;
     cursor: pointer;
+}
+.search-result-container .search-result img {
+    width: 16px;
+    height: 16px;
 }
 
 .search-result-container .search-result:hover {

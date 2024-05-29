@@ -1,0 +1,12 @@
+[package]
+name = "ftd-subscan-client"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77.2"
+
+[dependencies]
+anyhow = { workspace = true }
+ftd-config = { path = "../ftd-config" }
+ftd-types = { path = "../ftd-types" }
+reqwest = { version = "0.12", features = ["blocking", "json", "gzip", "brotli"] }
+rustc-hash = { workspace = true }

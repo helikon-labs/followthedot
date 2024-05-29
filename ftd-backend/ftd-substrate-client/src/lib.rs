@@ -40,7 +40,7 @@ impl SubstrateClient {
             .await?;
         let chain: String = ws_client.request("system_chain", rpc_params!()).await?;
         let chain = Chain::from_str(chain.as_str())?;
-        log::info!("{} substrate connection successful.", chain);
+        log::info!("{} Substrate connection successful.", chain);
         Ok(SubstrateClient { chain, ws_client })
     }
 
@@ -198,16 +198,21 @@ impl SubstrateClient {
     pub async fn get_balance(
         &self,
         account_id: AccountId,
-        _block_hash: &str,
+        maybe_block_hash: Option<&str>,
     ) -> anyhow::Result<Option<Balance>> {
         let storage_key_hex = get_storage_plain_key("System", "Account");
         let hasher = StorageHasher::Blake2_128Concat;
         let key_hash = hash(&hasher, &account_id.encode());
         let key_hex: String = hex::encode(key_hash);
         let keys = vec![format!("{storage_key_hex}{key_hex}")];
+        let rpc_params = if let Some(block_hash) = maybe_block_hash {
+            rpc_params!(keys, block_hash)
+        } else {
+            rpc_params!(keys)
+        };
         let values: Vec<StorageChangeSet<String>> = self
             .ws_client
-            .request("state_queryStorageAt", rpc_params!(keys))
+            .request("state_queryStorageAt", rpc_params)
             .await?;
         if let Some(change_set) = values.first() {
             if let Some((_, Some(data))) = change_set.changes.first() {

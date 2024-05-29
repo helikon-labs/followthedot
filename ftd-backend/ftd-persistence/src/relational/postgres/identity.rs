@@ -113,47 +113,4 @@ impl PostgreSQLStorage {
             .await?;
         Ok(())
     }
-
-    /*
-    pub async fn get_identity_change_by_id(
-        &self,
-        id: i32,
-    ) -> anyhow::Result<Option<(IdentityChange, Identity, SubIdentity)>> {
-        #[allow(clippy::type_complexity)]
-        let result: Option<(i32, i32, i32, String, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>)> = sqlx::query_as(
-            r#"
-            SELECT extrinsic_index, extrinsic_event_index, event_index, address, display, legal, web, riot, email, twitter, judgement, super_address, sub_display
-            FROM ftd_identity_change
-            WHERE id = $1
-            "#,
-        )
-            .bind(id)
-            .fetch_optional(&self.connection_pool)
-            .await?;
-        if let Some(row) = result {
-            let identity_change = IdentityChange {
-                extrinsic_index: row.0 as u16,
-                extrinsic_event_index: row.1 as u16,
-                event_index: row.2 as u16,
-                address: row.3.clone(),
-            };
-            let identity = Identity {
-                display: row.4,
-                legal: row.5,
-                web: row.6,
-                riot: row.7,
-                email: row.8,
-                twitter: row.9,
-                judgement: row.10,
-            };
-            let sub_identity = SubIdentity {
-                super_address: row.11,
-                sub_display: row.12,
-            };
-            Ok(Some((identity_change, identity, sub_identity)))
-        } else {
-            Ok(None)
-        }
-    }
-     */
 }

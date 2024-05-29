@@ -1709,33 +1709,15 @@ dependencies = [
  "ftd-metrics",
  "ftd-persistence",
  "ftd-service",
+ "ftd-subscan-client",
  "ftd-substrate-client",
  "ftd-types",
  "futures-util",
  "lazy_static",
  "log",
  "once_cell",
+ "rustc-hash",
  "serde",
- "tokio",
-]
-
-[[package]]
-name = "ftd-balance-updater"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "config",
- "ftd-config",
- "ftd-logging",
- "ftd-metrics",
- "ftd-persistence",
- "ftd-service",
- "ftd-substrate-client",
- "ftd-types",
- "lazy_static",
- "log",
- "once_cell",
  "tokio",
 ]
 
@@ -1870,6 +1852,17 @@ dependencies = [
  "log",
  "reqwest",
  "serde_json",
+]
+
+[[package]]
+name = "ftd-subscan-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ftd-config",
+ "ftd-types",
+ "reqwest",
+ "rustc-hash",
 ]
 
 [[package]]

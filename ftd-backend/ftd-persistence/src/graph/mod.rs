@@ -1,5 +1,5 @@
 use crate::CONFIG;
-use ftd_types::graph::GraphUpdaterState;
+use ftd_types::graph::{GraphUpdaterState, TransferVolume};
 use ftd_types::substrate::event::TransferEvent;
 use neo4j::Neo4JStorage;
 use neo4rs::Txn;
@@ -56,5 +56,15 @@ impl GraphStorage {
         self.neo4j.save_account(tx, transfer.to.as_str()).await?;
         self.neo4j.update_transfer_volume(tx, transfer).await?;
         Ok(())
+    }
+
+    pub async fn get_transfer_volumes_for_account(
+        &self,
+        address: &str,
+        limit: u16,
+    ) -> anyhow::Result<Vec<TransferVolume>> {
+        self.neo4j
+            .get_transfer_volumes_for_account(address, limit)
+            .await
     }
 }

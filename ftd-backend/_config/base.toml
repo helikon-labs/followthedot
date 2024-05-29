@@ -25,7 +25,7 @@ database_name = "neo4j"
 chain = "polkadot"
 chain_display = "Polkadot"
 rpc_url = "wss://rpc.helikon.io:443/polkadot"
-sidecar_url = "http://104.247.178.10:21001"
+sidecar_url = "https://sidecar.helikon.io/polkadot"
 connection_timeout_seconds = 15
 request_timeout_seconds = 15
 token_ticker = "DOT"
@@ -37,6 +37,11 @@ request_timeout_seconds = 60
 service_host = "0.0.0.0"
 api_service_port = 7900
 account_search_limit = 25
+graph_search_limit = 100
+
+[subscan]
+api_key = "subscan_api_key"
+account_data_url = "https://polkadot.api.subscan.io/api/v2/scan/search"
 
 [indexer]
 start_block_number = 12_000_000

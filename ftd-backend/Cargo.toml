@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "ftd-api-service",
-    "ftd-balance-updater",
     "ftd-config",
     "ftd-graph-updater",
     "ftd-identity-updater",
@@ -11,6 +10,7 @@ members = [
     "ftd-persistence",
     "ftd-service",
     "ftd-sidecar-client",
+    "ftd-subscan-client",
     "ftd-substrate-client",
     "ftd-transfer-volume-updater",
     "ftd-types",
@@ -41,6 +41,7 @@ once_cell = "1"
 prometheus = "0.13"
 rand = "0.8"
 reqwest = "0.12"
+rustc-hash = "1.1"
 serde = "1"
 serde_json = "1"
 sp-core = "33.0"

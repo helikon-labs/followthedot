@@ -15,11 +15,13 @@ ftd-logging = { path = "../ftd-logging" }
 ftd-metrics = { path = "../ftd-metrics" }
 ftd-persistence = { path = "../ftd-persistence" }
 ftd-service = { path = "../ftd-service" }
+ftd-subscan-client = { path = "../ftd-subscan-client" }
 ftd-substrate-client = { path = "../ftd-substrate-client" }
 ftd-types = { path = "../ftd-types" }
 futures-util = "0.3"
 lazy_static = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
-tokio = { workspace = true, features = ["full"] }
+rustc-hash = { workspace = true }
 serde = { version = "1.0.202", features = ["derive"] }
+tokio = { workspace = true, features = ["full"] }
