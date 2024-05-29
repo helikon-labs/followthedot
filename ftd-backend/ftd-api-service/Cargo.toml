@@ -23,5 +23,5 @@ lazy_static = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
 rustc-hash = { workspace = true }
-serde = { version = "1.0.202", features = ["derive"] }
+serde = { version = "1.0.203", features = ["derive"] }
 tokio = { workspace = true, features = ["full"] }
