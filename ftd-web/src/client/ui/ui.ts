@@ -29,13 +29,11 @@ class UI {
         this.api = new API(network.apiHost, network.apiPort);
     }
 
-    init() {
+    async init() {
         this.animate();
-        this.graph.appendData(DATA);
+        const data = await this.api.getAccountGraph('15fTH34bbKGMUjF1bLmTqxPYgpg481imThwhWcQfCyktyBzL');
+        this.graph.appendData(data);
         hide(this.loading);
-        setTimeout(() => {
-            this.graph.appendData(DATA_PT2);
-        }, 2000);
     }
 
     private animate() {

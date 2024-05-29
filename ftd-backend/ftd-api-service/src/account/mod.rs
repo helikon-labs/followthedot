@@ -141,7 +141,7 @@ pub(crate) async fn account_graph_service(
     });
     let mut accounts: Vec<Account> = Vec::new();
     for address in addresses.iter() {
-        let account_id = AccountId::from_str(path.address.as_str()).unwrap();
+        let account_id = AccountId::from_str(address.as_str()).unwrap();
         let maybe_identity = state
             .relational_storage
             .get_identity_by_address(address)

@@ -275,7 +275,6 @@ class Graph {
         balanceStrokeScale = d3.scaleLinear([0n, maxBalance].map(Number), [1, 10]);
         balanceColorScale = d3.scaleLinear([0n, maxBalance].map(Number), ['gray', 'blue']);
         balanceOpacityScale = d3.scaleLinear([0n, maxBalance].map(Number), [0.75, 0.4]);
-
         const maxTransferVolume = this.transferVolumes.reduce((acc, transferVolume) => {
             const volume = transferVolume.volume / BALANCE_DENOMINATOR;
             return acc > volume ? acc : volume;
@@ -283,6 +282,7 @@ class Graph {
         transferStrokeScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), [0.5, 5]);
         transferColorScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), ['gray', 'red']);
         transferOpacityScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), [1.0, 0.5]);
+        console.log(5);
     }
 
     reset() {

@@ -1,6 +1,4 @@
 import { Account, GraphData } from '../model/ftd-model';
-import { sleep } from '../util/async-util';
-import { DATA } from '../data/data';
 
 class API {
     private readonly host: string;
@@ -13,6 +11,13 @@ class API {
 
     private getBasePath(): string {
         return 'https://' + this.host + ':' + this.port;
+    }
+
+    private bigintReviver(key: string, value: any): any {
+        if (key === 'volume' || key === 'free' || key === 'reserved' || key === 'frozen') {
+            return BigInt(value);
+        }
+        return value;
     }
 
     async searchAccount(query: string): Promise<Account[]> {
@@ -28,8 +33,7 @@ class API {
     }
 
     async getAccountGraph(address: string): Promise<GraphData> {
-        alert(`${this.getBasePath()}/account/${address}/graph`)
-        return await (
+        const jsonString = await (
             await fetch(
                 `${this.getBasePath()}/account/${address}/graph`,
                 {
@@ -37,7 +41,8 @@ class API {
                     headers: {},
                 },
             )
-        ).json();
+        ).text();
+        return JSON.parse(jsonString, this.bigintReviver)
     }
 }
 
