@@ -1662,9 +1662,9 @@ dependencies = [
 
 [[package]]
 name = "frame-system"
-version = "34.0.0"
+version = "34.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7c597d2675c5cf866a1f76dd268782e559c54642e7fc13f3c5dd6a64c149d38"
+checksum = "85777d5cb78d8f244aa4e92a06d13c234f7980dd7095b1baeefc23a5945cad6c"
 dependencies = [
  "cfg-if",
  "docify",
