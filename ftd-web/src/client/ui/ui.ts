@@ -1,7 +1,6 @@
 import * as TWEEN from '@tweenjs/tween.js';
 import { EventBus } from '../event/event-bus';
 import { Graph } from './graph';
-import { DATA, DATA_PT2 } from '../data/data';
 import { SearchBar } from './search-bar';
 import { Network } from '../model/substrate/network';
 import { Account } from '../model/ftd-model';
@@ -31,7 +30,9 @@ class UI {
 
     async init() {
         this.animate();
-        const data = await this.api.getAccountGraph('15fTH34bbKGMUjF1bLmTqxPYgpg481imThwhWcQfCyktyBzL');
+        const data = await this.api.getAccountGraph(
+            '15fTH34bbKGMUjF1bLmTqxPYgpg481imThwhWcQfCyktyBzL',
+        );
         this.graph.appendData(data);
         hide(this.loading);
     }

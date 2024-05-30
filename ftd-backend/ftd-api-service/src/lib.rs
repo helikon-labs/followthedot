@@ -26,7 +26,7 @@ pub(crate) struct ServiceState {
     relational_storage: Arc<RelationalStorage>,
     graph_storage: Arc<GraphStorage>,
     substrate_client: Arc<SubstrateClient>,
-    _subscan_client: Arc<SubscanClient>,
+    subscan_client: Arc<SubscanClient>,
 }
 
 async fn on_server_ready() {
@@ -58,7 +58,7 @@ impl Service for APIService {
                     relational_storage: relational_storage.clone(),
                     graph_storage: graph_storage.clone(),
                     substrate_client: substrate_client.clone(),
-                    _subscan_client: subscan_client.clone(),
+                    subscan_client: subscan_client.clone(),
                 }))
                 .wrap_fn(|request, service| {
                     metrics::request_counter().inc();

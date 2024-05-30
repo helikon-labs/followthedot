@@ -56,7 +56,7 @@ function appendSVG(): SVG_SVG_SELECTION {
         .append('svg')
         .attr('width', width)
         .attr('height', height)
-        .attr("viewBox", [-width / 2, -height / 2, width, height])
+        .attr('viewBox', [-width / 2, -height / 2, width, height])
         .attr('style', 'max-width: 100%; max-height: 100%;');
 }
 
@@ -115,15 +115,27 @@ function transformAccountLabel(d: any, scale: number): string {
 }
 
 function getAccountStrokeWidth(account: Account): number {
-    return balanceStrokeScale(Number((account.balance.free / BALANCE_DENOMINATOR).valueOf()));
+    let balance = BigInt('0');
+    if (account.balance) {
+        balance = account.balance.free;
+    }
+    return balanceStrokeScale(Number((balance / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getAccountStrokeColor(account: Account): string {
-    return balanceColorScale(Number((account.balance.free / BALANCE_DENOMINATOR).valueOf()));
+    let balance = BigInt('0');
+    if (account.balance) {
+        balance = account.balance.free;
+    }
+    return balanceColorScale(Number((balance / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getAccountStrokeOpacity(account: Account): number {
-    return balanceOpacityScale(Number((account.balance.free / BALANCE_DENOMINATOR).valueOf()));
+    let balance = BigInt('0');
+    if (account.balance) {
+        balance = account.balance.free;
+    }
+    return balanceOpacityScale(Number((balance / BALANCE_DENOMINATOR).valueOf()));
 }
 
 function getTransferStrokeWidth(transfer: TransferVolume): number {
@@ -162,13 +174,9 @@ class Graph {
                     .strength(0.8)
                     .distance(LINK_DISTANCE),
             )
-            .force('charge', d3.forceManyBody().strength(-10000))
-            .force('y', d3.forceY())
-            .force('x', d3.forceX())
-            //.force('center', d3.forceCenter(0 , 0).strength(0.1));
-
-        //.force('x', d3.forceX(window.innerWidth / 2))
-        //.force('y', d3.forceY(window.innerHeight / 2));
+            .force('charge', d3.forceManyBody().strength(-5000))
+            .force('x', d3.forceX(0))
+            .force('y', d3.forceY(0));
         appendSVGMarkerDefs(this.svg);
         this.svg
             .call(
@@ -269,7 +277,10 @@ class Graph {
 
     private resetScales() {
         const maxBalance = this.accounts.reduce((acc, account) => {
-            const balance = account.balance.free / BALANCE_DENOMINATOR;
+            let balance = BigInt('0');
+            if (account.balance) {
+                balance = account.balance.free / BALANCE_DENOMINATOR;
+            }
             return acc > balance ? acc : balance;
         }, 0);
         balanceStrokeScale = d3.scaleLinear([0n, maxBalance].map(Number), [1, 10]);
@@ -282,7 +293,6 @@ class Graph {
         transferStrokeScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), [0.5, 5]);
         transferColorScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), ['gray', 'red']);
         transferOpacityScale = d3.scaleLinear([0n, maxTransferVolume].map(Number), [1.0, 0.5]);
-        console.log(5);
     }
 
     reset() {
@@ -370,7 +380,12 @@ class Graph {
                         .append('textPath')
                         .attr('href', (d) => `#link-${d.id}`)
                         .attr('startOffset', '50%')
-                        .text((d) => formatNumber(d.volume, Polkadot.DECIMAL_COUNT, 2, 'DOT'))
+                        .text(
+                            (d) =>
+                                d.count +
+                                ' ⇆ ' +
+                                formatNumber(d.volume, Polkadot.DECIMAL_COUNT, 2, 'DOT'),
+                        )
                         //.style('pointer-events', 'none')
                         .on('mouseover', function () {
                             d3.select(this).attr('cursor', 'pointer');
@@ -391,6 +406,7 @@ class Graph {
                 (enter) => {
                     const accounts = enter
                         .append('circle')
+                        .attr('id', (d) => `account-${d.address}`)
                         .attr('class', 'account')
                         //.attr('fill', '#DDD')
                         .attr('fill', '#FFF')
@@ -419,6 +435,8 @@ class Graph {
                             .drag()
                             .on('start', (event) => {
                                 if (!event.active) this.simulation.alphaTarget(0.3).restart();
+                                d3.select(`#account-${event.subject.address}`).raise();
+                                d3.select(`#account-label-${event.subject.address}`).raise();
                                 event.subject.fx = event.subject.x;
                                 event.subject.fy = event.subject.y;
                             })
@@ -479,9 +497,13 @@ class Graph {
                         )
                         .attr('class', 'account-balance-label')
                         //.attr('text-anchor', 'middle')
-                        .text((account: Account) =>
-                            formatNumber(account.balance.free, Polkadot.DECIMAL_COUNT, 2, 'DOT'),
-                        )
+                        .text((account: Account) => {
+                            let balance = BigInt('0');
+                            if (account.balance) {
+                                balance = account.balance.free;
+                            }
+                            return formatNumber(balance, Polkadot.DECIMAL_COUNT, 2, 'DOT');
+                        })
                         .style('pointer-events', 'none');
                     accountLabel
                         .append('g')
@@ -509,6 +531,7 @@ class Graph {
         this.simulation.on('tick', () => {
             this.tick(accounts, accountLabel, transfers, transferLabels);
         });
+        this.simulation.alpha(0.75).restart();
     }
 }
 

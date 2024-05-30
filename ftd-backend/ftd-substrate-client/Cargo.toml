@@ -15,4 +15,5 @@ jsonrpsee-core = { workspace = true }
 jsonrpsee-types = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = "3.6"
+rustc-hash = { workspace = true }
 sp-core = { workspace = true }

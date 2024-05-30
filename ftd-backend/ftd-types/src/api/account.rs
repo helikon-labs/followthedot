@@ -2,6 +2,7 @@ use crate::api::identity::{Identity, SubIdentity};
 use crate::graph::TransferVolume;
 use crate::substrate::balance::Balance;
 use frame_support::{Deserialize, Serialize};
+use crate::subscan::SubscanAccount;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -11,6 +12,7 @@ pub struct Account {
     pub sub_identity: Option<SubIdentity>,
     pub super_identity: Option<Identity>,
     pub balance: Option<Balance>,
+    pub subscan_account: Option<SubscanAccount>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

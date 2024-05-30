@@ -14,6 +14,7 @@ use jsonrpsee::ws_client::WsClientBuilder;
 use jsonrpsee_core::client::{Client, ClientT};
 use jsonrpsee_core::rpc_params;
 use parity_scale_codec::{Decode, Encode};
+use rustc_hash::FxHashMap as HashMap;
 use sp_core::storage::StorageChangeSet;
 use std::str::FromStr;
 
@@ -187,17 +188,52 @@ impl SubstrateClient {
         Ok(sub_identities)
     }
 
-    pub async fn get_balances(&self, at: &str) -> anyhow::Result<()> {
-        let keys = self
-            .get_all_keys_for_storage("System", "Account", at)
-            .await?;
-        log::info!("Got {} balance keys.", keys.len());
-        Ok(())
+    pub async fn get_balances(
+        &self,
+        account_ids: &[AccountId],
+        maybe_block_hash: Option<&str>,
+    ) -> anyhow::Result<HashMap<AccountId, Balance>> {
+        let storage_key_hex = get_storage_plain_key("System", "Account");
+        let hasher = StorageHasher::Blake2_128Concat;
+        let mut keys = Vec::new();
+        for account_id in account_ids {
+            let key_hash = hash(&hasher, &account_id.encode());
+            let key_hex: String = hex::encode(key_hash);
+            keys.push(format!("{storage_key_hex}{key_hex}"));
+        }
+        let mut map = HashMap::default();
+        for chunk in keys.chunks(KEY_QUERY_PAGE_SIZE) {
+            let rpc_params = if let Some(block_hash) = maybe_block_hash {
+                rpc_params!(chunk, block_hash)
+            } else {
+                rpc_params!(chunk)
+            };
+            let chunk_values: Vec<StorageChangeSet<String>> = self
+                .ws_client
+                .request("state_queryStorageAt", rpc_params)
+                .await?;
+            for (storage_key, data) in &chunk_values[0].changes {
+                if let Some(data) = data {
+                    let mut bytes: &[u8] = &data.0;
+                    let account_info: AccountInfo<u32, AccountData<u128>> =
+                        Decode::decode(&mut bytes)?;
+                    map.insert(
+                        account_id_from_storage_key(storage_key),
+                        Balance {
+                            free: account_info.data.free,
+                            reserved: account_info.data.reserved,
+                            frozen: account_info.data.frozen,
+                        },
+                    );
+                }
+            }
+        }
+        Ok(map)
     }
 
     pub async fn get_balance(
         &self,
-        account_id: AccountId,
+        account_id: &AccountId,
         maybe_block_hash: Option<&str>,
     ) -> anyhow::Result<Option<Balance>> {
         let storage_key_hex = get_storage_plain_key("System", "Account");
@@ -217,7 +253,6 @@ impl SubstrateClient {
         if let Some(change_set) = values.first() {
             if let Some((_, Some(data))) = change_set.changes.first() {
                 let mut bytes: &[u8] = &data.0;
-                // decode account info
                 let account_info: AccountInfo<u32, AccountData<u128>> = Decode::decode(&mut bytes)?;
                 let account_data = account_info.data;
                 Ok(Some(Balance {

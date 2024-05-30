@@ -1,11 +1,30 @@
 use crate::{ResultResponse, ServiceState, CONFIG};
 use actix_web::{get, web, HttpResponse};
+use ftd_substrate_client::SubstrateClient;
 use ftd_types::api::account::{Account, AccountGraph};
 use ftd_types::err::ServiceError;
 use ftd_types::substrate::account_id::AccountId;
 use rustc_hash::FxHashSet as HashSet;
 use serde::Deserialize;
 use std::str::FromStr;
+use std::sync::Arc;
+
+async fn set_account_balances(
+    substrate_client: &Arc<SubstrateClient>,
+    accounts: &mut [Account],
+) -> anyhow::Result<()> {
+    let account_ids: Vec<AccountId> = accounts
+        .iter()
+        .map(|account| AccountId::from_str(account.address.as_str()).unwrap())
+        .collect();
+    let balance_map = substrate_client.get_balances(&account_ids, None).await?;
+    // get balances
+    for account in accounts.iter_mut() {
+        let account_id = AccountId::from_str(account.address.as_str()).unwrap();
+        account.balance = balance_map.get(&account_id).cloned();
+    }
+    Ok(())
+}
 
 #[derive(Deserialize)]
 pub(crate) struct AccountSearchParameters {
@@ -40,6 +59,7 @@ pub(crate) async fn account_search_service(
             sub_identity: None,
             super_identity: None,
             balance: None,
+            subscan_account: None,
         })
         .collect();
     // get sub accounts
@@ -60,6 +80,7 @@ pub(crate) async fn account_search_service(
                             sub_identity: Some(sub_identity.clone()),
                             super_identity: Some(super_identity.clone()),
                             balance: None,
+                            subscan_account: None,
                         })
                     });
             }
@@ -88,6 +109,7 @@ pub(crate) async fn account_search_service(
                 sub_identity: Some(sub_identity.clone()),
                 super_identity,
                 balance: None,
+                subscan_account: None,
             });
         }
     }
@@ -105,15 +127,11 @@ pub(crate) async fn account_search_service(
                 sub_identity: None,
                 super_identity: None,
                 balance: None,
+                subscan_account: None,
             });
         })
     }
-    // get balances
-    for account in accounts.iter_mut() {
-        let account_id = AccountId::from_str(account.address.as_str()).unwrap();
-        let balance = state.substrate_client.get_balance(account_id, None).await?;
-        account.balance = balance;
-    }
+    set_account_balances(&state.substrate_client, &mut accounts).await?;
     Ok(HttpResponse::Ok().json(accounts))
 }
 
@@ -139,18 +157,17 @@ pub(crate) async fn account_graph_service(
         addresses.insert(transfer_volume.from.clone());
         addresses.insert(transfer_volume.to.clone());
     });
-    let mut accounts: Vec<Account> = Vec::new();
+    let mut accounts = Vec::new();
     for address in addresses.iter() {
-        let account_id = AccountId::from_str(address.as_str()).unwrap();
-        let maybe_identity = state
+        let identity = state
             .relational_storage
             .get_identity_by_address(address)
             .await?;
-        let maybe_sub_identity = state
+        let sub_identity = state
             .relational_storage
             .get_sub_identity_by_address(address)
             .await?;
-        let maybe_super_identity = if let Some(sub_identity) = &maybe_sub_identity {
+        let super_identity = if let Some(sub_identity) = &sub_identity {
             state
                 .relational_storage
                 .get_identity_by_address(sub_identity.super_address.as_str())
@@ -158,15 +175,17 @@ pub(crate) async fn account_graph_service(
         } else {
             None
         };
-        let balance = state.substrate_client.get_balance(account_id, None).await?;
+        let subscan_account = state.subscan_client.get_account(address).await?;
         accounts.push(Account {
             address: address.to_string(),
-            identity: maybe_identity,
-            sub_identity: maybe_sub_identity,
-            super_identity: maybe_super_identity,
-            balance,
+            identity,
+            sub_identity,
+            super_identity,
+            balance: None,
+            subscan_account: Some(subscan_account.data.account)
         })
     }
+    set_account_balances(&state.substrate_client, &mut accounts).await?;
     Ok(HttpResponse::Ok().json(AccountGraph {
         accounts,
         transfer_volumes,

@@ -34,15 +34,12 @@ class API {
 
     async getAccountGraph(address: string): Promise<GraphData> {
         const jsonString = await (
-            await fetch(
-                `${this.getBasePath()}/account/${address}/graph`,
-                {
-                    method: 'GET',
-                    headers: {},
-                },
-            )
+            await fetch(`${this.getBasePath()}/account/${address}/graph`, {
+                method: 'GET',
+                headers: {},
+            })
         ).text();
-        return JSON.parse(jsonString, this.bigintReviver)
+        return JSON.parse(jsonString, this.bigintReviver);
     }
 }
 

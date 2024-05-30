@@ -1873,6 +1873,7 @@ dependencies = [
  "jsonrpsee-types",
  "log",
  "parity-scale-codec",
+ "rustc-hash",
  "sp-core",
 ]
 
