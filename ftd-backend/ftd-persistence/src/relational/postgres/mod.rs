@@ -5,6 +5,7 @@ use std::time::Duration;
 pub mod account;
 pub mod block;
 pub mod identity;
+pub mod subscan;
 pub mod transfer;
 pub mod transfer_volume;
 

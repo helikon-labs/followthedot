@@ -1,0 +1,1 @@
+DROP TABLE ftd_subscan_account CASCADE;

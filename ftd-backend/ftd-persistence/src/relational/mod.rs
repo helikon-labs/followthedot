@@ -1,6 +1,7 @@
 use crate::{CONFIG, REDENOMINATION_BLOCK_NUMBER};
 use ftd_types::api::identity::{Identity as APIIdentity, SubIdentity as APISubIdentity};
 use ftd_types::api::transfer::Transfer;
+use ftd_types::subscan::SubscanAccount;
 use ftd_types::substrate::block::Block;
 use ftd_types::substrate::event::TransferEvent;
 use ftd_types::substrate::identity::{Identity, SubIdentity};
@@ -196,5 +197,16 @@ impl RelationalStorage {
         self.postgres
             .get_transfers_by_sender_and_recipient(from, to)
             .await
+    }
+
+    pub async fn get_subscan_account_by_address(
+        &self,
+        address: &str,
+    ) -> anyhow::Result<Option<SubscanAccount>> {
+        self.postgres.get_subscan_account(address).await
+    }
+
+    pub async fn save_subscan_account(&self, account: &SubscanAccount) -> anyhow::Result<String> {
+        self.postgres.save_subscan_account(account).await
     }
 }

@@ -54,7 +54,7 @@ impl PostgreSQLStorage {
             .bind(transfer.event_index as i32)
             .bind(&transfer.from)
             .bind(&transfer.to)
-            .bind(&transfer.amount.to_string())
+            .bind(transfer.amount.to_string())
             .fetch_one(&mut **transaction)
             .await?;
         Ok(result.0)

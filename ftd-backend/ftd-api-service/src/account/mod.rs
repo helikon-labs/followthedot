@@ -99,6 +99,12 @@ pub(crate) async fn account_search_service(
             .await?;
         // get super identities
         for sub_identity in sub_identities.iter() {
+            if accounts
+                .iter()
+                .any(|account| account.address == sub_identity.address)
+            {
+                continue;
+            }
             let super_identity = state
                 .relational_storage
                 .get_identity_by_address(sub_identity.super_address.as_str())
@@ -121,14 +127,19 @@ pub(crate) async fn account_search_service(
             .search_addresses(query.as_str(), limit)
             .await?;
         addresses.iter().for_each(|address| {
-            accounts.push(Account {
-                address: address.clone(),
-                identity: None,
-                sub_identity: None,
-                super_identity: None,
-                balance: None,
-                subscan_account: None,
-            });
+            if accounts
+                .iter()
+                .any(|account| account.address.as_str() == address)
+            {
+                accounts.push(Account {
+                    address: address.clone(),
+                    identity: None,
+                    sub_identity: None,
+                    super_identity: None,
+                    balance: None,
+                    subscan_account: None,
+                });
+            }
         })
     }
     set_account_balances(&state.substrate_client, &mut accounts).await?;
@@ -175,14 +186,38 @@ pub(crate) async fn account_graph_service(
         } else {
             None
         };
-        let subscan_account = state.subscan_client.get_account(address).await?;
+        let subscan_account = if let Some(subscan_account) = state
+            .relational_storage
+            .get_subscan_account_by_address(address)
+            .await?
+        {
+            subscan_account
+        } else {
+            let subscan_account = state
+                .subscan_client
+                .get_account(address)
+                .await?
+                .data
+                .account;
+            state
+                .relational_storage
+                .save_subscan_account(&subscan_account)
+                .await?;
+            subscan_account
+        };
         accounts.push(Account {
             address: address.to_string(),
             identity,
             sub_identity,
             super_identity,
             balance: None,
-            subscan_account: Some(subscan_account.data.account)
+            subscan_account: if subscan_account.display.is_some()
+                || subscan_account.account_display.is_some()
+            {
+                Some(subscan_account)
+            } else {
+                None
+            },
         })
     }
     set_account_balances(&state.substrate_client, &mut accounts).await?;

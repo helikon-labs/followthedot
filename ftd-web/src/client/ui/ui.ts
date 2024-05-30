@@ -12,28 +12,35 @@ class UI {
     private readonly background: HTMLDivElement;
     private readonly content: HTMLDivElement;
     private readonly eventBus = EventBus.getInstance();
-    private readonly graph = new Graph();
+    private readonly graph;
     private readonly searchBar: SearchBar;
     private readonly loading: HTMLDivElement;
     private readonly api: API;
+    private readonly initialAddress = '13JJDv1yBfMtP1E66pHvm1ysreAXqkZHxY5jqFR4yKPfL2iB';
 
     constructor(network: Network) {
         this.root = <HTMLElement>document.getElementById('root');
         this.background = <HTMLDivElement>document.getElementById('background');
         this.content = <HTMLDivElement>document.getElementById('content');
         this.searchBar = new SearchBar(network, (account: Account) => {
-            this.loadAccountGraph(account);
+            this.loadAccountGraph(account.address);
         });
+        this.graph = new Graph(
+            (address: string) => {
+                this.expandGraph(address);
+            },
+            (address: string) => {
+                this.loadAccountGraph(address);
+            }
+        )
         this.loading = <HTMLDivElement>document.getElementById('loading-container');
         this.api = new API(network.apiHost, network.apiPort);
     }
 
     async init() {
         this.animate();
-        const data = await this.api.getAccountGraph(
-            '15fTH34bbKGMUjF1bLmTqxPYgpg481imThwhWcQfCyktyBzL',
-        );
-        this.graph.appendData(data);
+        const data = await this.api.getAccountGraph(this.initialAddress);
+        this.graph.appendData(this.initialAddress, data);
         hide(this.loading);
     }
 
@@ -44,19 +51,31 @@ class UI {
         TWEEN.update();
     }
 
-    private async loadAccountGraph(account: Account) {
+    private async loadAccountGraph(address: string) {
         this.graph.reset();
         this.searchBar.disable();
         show(this.loading);
         try {
-            const data = await this.api.getAccountGraph(account.address);
+            const data = await this.api.getAccountGraph(address);
             hide(this.loading);
-            this.graph.appendData(data);
+            this.graph.appendData(address, data);
             this.searchBar.enable();
         } catch (error) {
             hide(this.loading);
             this.searchBar.enable();
-            alert(`Error while getting account data: ${error}`);
+            alert(`Error while getting account graph: ${error}`);
+        }
+    }
+
+    private async expandGraph(address: string) {
+        show(this.loading);
+        try {
+            const data = await this.api.getAccountGraph(address);
+            hide(this.loading);
+            this.graph.appendData(address, data);
+        } catch (error) {
+            hide(this.loading);
+            alert(`Error while getting account graph: ${error}`);
         }
     }
 }

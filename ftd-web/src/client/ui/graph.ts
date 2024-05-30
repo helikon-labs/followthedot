@@ -151,15 +151,54 @@ function getTransferStrokeOpacity(transfer: TransferVolume): number {
 }
 
 class Graph {
-    private readonly svg;
+    private readonly svg: SVG_SVG_SELECTION;
     private accountGroup: SVG_GROUP_SELECTION;
     private transferGroup: SVG_GROUP_SELECTION;
     private simulation: SVG_SIMULATION;
     private scale = 1;
     private accounts: any[] = [];
     private transferVolumes: any[] = [];
+    private readonly onClickAccount: (address: string) => void;
+    private readonly onDoubleClickAccount: (address: string) => void;
+    private readonly drag = d3
+        .drag()
+        .on('start', (event) => {
+            if (!event.active) this.simulation.alphaTarget(0.3).restart();
+            event.subject.fx = event.subject.x;
+            event.subject.fy = event.subject.y;
+        })
+        .on('drag', (event) => {
+            event.subject.fx = event.x;
+            event.subject.fy = event.y;
+        })
+        .on('end', (event) => {
+            if (!event.active) this.simulation.alphaTarget(0);
+            event.subject.fx = null;
+            event.subject.fy = null;
+        });
+    private readonly zoom = d3
+        .zoom()
+        .extent([
+            [0, 0],
+            [window.innerWidth, window.innerHeight],
+        ])
+        .scaleExtent([0.2, 8])
+        .on('zoom', (e) => {
+            this.scale = e.transform.k;
+            this.transferGroup.attr('transform', e.transform);
+            this.accountGroup.attr('transform', e.transform);
+        });
+    private readonly initialScale = 0.70;
+    private readonly initialTransform = d3.zoomIdentity
+        .scale(this.initialScale);
+    private loadedAddresses: string[] = [];
 
-    constructor() {
+    constructor(
+        onClickAccount: (address: string) => void,
+        onDoubleClickAccount: (address: string) => void,
+    ) {
+        this.onClickAccount = onClickAccount;
+        this.onDoubleClickAccount = onDoubleClickAccount;
         this.svg = appendSVG();
         this.transferGroup = this.svg.append('g');
         this.accountGroup = this.svg.append('g');
@@ -179,22 +218,11 @@ class Graph {
             .force('y', d3.forceY(0));
         appendSVGMarkerDefs(this.svg);
         this.svg
-            .call(
-                // @ts-ignore
-                d3
-                    .zoom()
-                    .extent([
-                        [0, 0],
-                        [window.innerWidth, window.innerHeight],
-                    ])
-                    .scaleExtent([0.2, 8])
-                    .on('zoom', (e) => {
-                        this.scale = e.transform.k;
-                        this.transferGroup.attr('transform', e.transform);
-                        this.accountGroup.attr('transform', e.transform);
-                    }),
-            )
+            // @ts-ignore
+            .call(this.zoom)
             .on('dblclick.zoom', null);
+        // @ts-ignore
+        this.svg.call(this.zoom.transform, this.initialTransform);
     }
 
     private getLinkTranslation(linkPosition: LinkPosition, point0: any, point1: any) {
@@ -296,8 +324,12 @@ class Graph {
     }
 
     reset() {
+        this.loadedAddresses = [];
         this.accounts = [];
         this.transferVolumes = [];
+        const transform = d3.zoomIdentity.translate(0, 0).scale(this.initialScale);
+        // @ts-ignore
+        this.svg.call(this.zoom.transform, transform);
         this.display();
     }
 
@@ -311,7 +343,8 @@ class Graph {
         this.display();
     }
 
-    appendData(data: GraphData) {
+    appendData(forAddress: string, data: GraphData) {
+        this.loadedAddresses.push(forAddress);
         for (const account of data.accounts) {
             if (this.accounts.findIndex((a) => a.address === account.address) === -1) {
                 this.accounts.push({ ...account });
@@ -416,40 +449,31 @@ class Graph {
                             getAccountStrokeOpacity(account),
                         )
                         .attr('r', ACCOUNT_RADIUS)
-                        .on('mouseover', function () {
+                        .on('mouseover',  (e, d) => {
+                            let cursor = 'cell';
+                            if (this.loadedAddresses.indexOf(d.address) >= 0) {
+                                cursor = 'all-scroll';
+                            }
                             /*function (e, d) {*/
-                            d3.select(this).attr('fill', '#EFEFEF');
-                            d3.select(this).attr('cursor', 'pointer');
+                            d3.select(`#account-${d.address}`).attr('fill', '#EFEFEF');
+                            d3.select(`#account-${d.address}`).attr('cursor', cursor);
                         })
                         .on('mouseout', function () {
                             /*function (e, d) {*/
                             d3.select(this).attr('fill', '#FFF');
                         })
+                        .on('click', (e, d) => {
+                            if (this.loadedAddresses.indexOf(d.address) < 0) {
+                                this.onClickAccount(d.address);
+                                d3.select(`#account-${d.address}`).attr('cursor', 'all-scroll');
+                            }
+                        })
                         .on('dblclick', (e, d) => {
-                            this.removeAccount(d.address);
+                            this.onDoubleClickAccount(d.address);
                         });
                     accounts.append('title').text((d) => truncateAddress(d.address));
-                    accounts.call(
-                        // @ts-ignore
-                        d3
-                            .drag()
-                            .on('start', (event) => {
-                                if (!event.active) this.simulation.alphaTarget(0.3).restart();
-                                d3.select(`#account-${event.subject.address}`).raise();
-                                d3.select(`#account-label-${event.subject.address}`).raise();
-                                event.subject.fx = event.subject.x;
-                                event.subject.fy = event.subject.y;
-                            })
-                            .on('drag', (event) => {
-                                event.subject.fx = event.x;
-                                event.subject.fy = event.y;
-                            })
-                            .on('end', (event) => {
-                                if (!event.active) this.simulation.alphaTarget(0);
-                                event.subject.fx = null;
-                                event.subject.fy = null;
-                            }),
-                    );
+                    // @ts-ignore
+                    accounts.call(this.drag);
                     return accounts;
                 },
                 undefined,

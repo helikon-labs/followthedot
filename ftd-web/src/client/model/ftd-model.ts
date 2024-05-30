@@ -25,12 +25,41 @@ interface SubIdentity {
     subDisplay?: string;
 }
 
+interface SubscanParentAccountDisplay {
+    address: string;
+    display?: string;
+    subSymbol?: string;
+    identity?: boolean;
+}
+
+interface SubscanMerkleScienceAccountInfo {
+    addressType: string,
+    tagType?: string,
+    tagSubtype?: string,
+    tagName: string,
+}
+
+interface SubscanAccountDisplay {
+    address: string;
+    display?: string;
+    identity?: boolean;
+    parent?: SubscanParentAccountDisplay;
+    merkle?: SubscanMerkleScienceAccountInfo;
+}
+
+interface SubscanAccount {
+    address: string,
+    display?: string,
+    accountDisplay?: SubscanAccountDisplay,
+}
+
 interface Account {
     address: string;
     identity?: Identity;
     subIdentity?: SubIdentity;
     superIdentity?: Identity;
     balance: Balance;
+    subscanAccount?: SubscanAccount;
 }
 
 interface TransferVolume {

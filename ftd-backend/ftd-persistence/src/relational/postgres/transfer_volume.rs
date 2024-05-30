@@ -66,7 +66,7 @@ impl PostgreSQLStorage {
         )
         .bind(&transfer.from)
         .bind(&transfer.to)
-        .bind(&volume.to_string())
+        .bind(volume.to_string())
         .fetch_one(&self.connection_pool)
         .await?;
         Ok((volume, result.0 as u32))
