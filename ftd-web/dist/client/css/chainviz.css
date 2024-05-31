@@ -94,20 +94,40 @@ a:active {
 
 .logo-container {
     position: fixed;
-    top: 16px;
-    left: 8px;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.logo-container div {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-content: center;
     gap: 8px;
-}
-
-.logo-container span {
     font-family: 'Cutive Mono', monospace;
     font-weight: 400;
     font-style: normal;
     font-size: 18px;
+}
+
+.logo-container span.version {
+    font-family: 'Cutive Mono', monospace;
+    font-size: 12px;
+    margin-left: 28px;
+}
+
+@media screen and (max-width: 900px) {
+    .logo-container {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .logo-container span.version {
+        opacity: 0;
+    }
 }
 
 .logo-container img {
@@ -165,7 +185,7 @@ a:active {
 /* search */
 .search-bar-container {
     position: absolute;
-    top: 8px;
+    top: 12px;
     left: 50%;
     transform: translate(-50%, 0);
 }
@@ -240,6 +260,7 @@ a:active {
     border-bottom: 1px solid #00000022;
     cursor: pointer;
 }
+
 .search-result-container .search-result img {
     width: 16px;
     height: 16px;
@@ -251,6 +272,16 @@ a:active {
 
 .search-result-container .search-result:last-child {
     border-bottom: none;
+}
+
+@media screen and (max-width: 900px) {
+    .search-bar-container {
+        top: 40px;
+    }
+
+    .search-result-container {
+        top: 96px;
+    }
 }
 
 /* graph */
@@ -293,4 +324,48 @@ a:active {
 .transfer-label {
     color: #aaa;
     font-size: 12px;
+}
+
+.icon-container {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    background: #fffe;
+    border: 1px solid #00000044;
+    border-radius: 10px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+@media screen and (max-width: 900px) {
+    .icon-container {
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.icon-container a,
+img {
+    width: 18px;
+    height: 18px;
+}
+
+.icon-container img {
+    opacity: 0.6;
+}
+
+.icon-container img:hover {
+    opacity: 1;
+}
+
+#polkadot-icon,
+#helikon-icon,
+#github-icon {
+    filter: invert(1);
 }

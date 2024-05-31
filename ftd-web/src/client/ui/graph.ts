@@ -3,7 +3,8 @@ import { BaseType, Simulation, SimulationNodeDatum } from 'd3';
 import {
     Account,
     getAccountConfirmedIcon,
-    getAccountDisplay, getAccountSubscanDisplay,
+    getAccountDisplay,
+    getAccountSubscanDisplay,
     GraphData,
     TransferVolume,
 } from '../model/ftd-model';
@@ -83,7 +84,6 @@ function transformAccountLabel(d: any, scale: number): string {
     const groupWidth = group.node()!.getBoundingClientRect().width;
 
     let balanceLabelYOffset = 24;
-    // set subscan display position
     const subscanDisplayLabelSelector = `#account-subscan-display-label-${d.address}`;
     const subscanDisplayLabel = d3.select(subscanDisplayLabelSelector);
     // @ts-ignore
@@ -103,10 +103,7 @@ function transformAccountLabel(d: any, scale: number): string {
             merkleScienceIcon.attr('opacity', 0.0);
         }
     } else {
-        merkleScienceIcon.attr(
-            'opacity',
-            0.0,
-        );
+        merkleScienceIcon.attr('opacity', 0.0);
     }
     subscanDisplayLabel.attr(
         'transform',
@@ -222,8 +219,8 @@ class Graph {
             this.transferGroup.attr('transform', e.transform);
             this.accountGroup.attr('transform', e.transform);
         });
-    private readonly initialScale = 0.7;
-    private readonly initialTransform = d3.zoomIdentity.scale(this.initialScale);
+    private readonly initialScale;
+    private readonly initialTransform;
     private loadedAddresses: string[] = [];
     private clickTimeout?: NodeJS.Timeout = undefined;
 
@@ -231,6 +228,12 @@ class Graph {
         onClickAccount: (address: string) => void,
         onDoubleClickAccount: (address: string) => void,
     ) {
+        if (window.innerWidth < 600) {
+            this.initialScale = 0.5;
+        } else {
+            this.initialScale = 0.7;
+        }
+        this.initialTransform = d3.zoomIdentity.scale(this.initialScale);
         this.onClickAccount = onClickAccount;
         this.onDoubleClickAccount = onDoubleClickAccount;
         this.svg = appendSVG();
@@ -508,7 +511,9 @@ class Graph {
                             if (this.loadedAddresses.indexOf(d.address) < 0) {
                                 d3.select(`#account-${d.address}`).attr('cursor', 'all-scroll');
                                 clearTimeout(this.clickTimeout);
-                                this.clickTimeout = setTimeout(() => { this.onClickAccount(d.address); }, 200);
+                                this.clickTimeout = setTimeout(() => {
+                                    this.onClickAccount(d.address);
+                                }, 200);
                             }
                         })
                         .on('dblclick', (e, d) => {
@@ -560,10 +565,7 @@ class Graph {
                         .style('pointer-events', 'none');
                     accountLabel
                         .append('svg:image')
-                        .attr(
-                            'xlink:href',
-                            './img/icon/merkle-science-icon.svg',
-                        )
+                        .attr('xlink:href', './img/icon/merkle-science-icon.svg')
                         .attr(
                             'id',
                             (account: Account) => `account-merkle-science-icon-${account.address}`,
@@ -575,7 +577,8 @@ class Graph {
                         .append('text')
                         .attr(
                             'id',
-                            (account: Account) => `account-subscan-display-label-${account.address}`,
+                            (account: Account) =>
+                                `account-subscan-display-label-${account.address}`,
                         )
                         .attr('class', 'account-subscan-display-label')
                         .text((account: Account) => {
@@ -591,8 +594,16 @@ class Graph {
                         .append('g')
                         .attr('id', (d) => `account-identicon-${d.address}`)
                         .html((d) => getIdenticon(d.address))
-                        .style('pointer-events', 'none');
-
+                        //.style('pointer-events', 'none')
+                        .on('mouseover', function () {
+                            d3.select(this).attr('cursor', 'pointer');
+                        })
+                        .on('click', (e, d) => {
+                            window.open(
+                                `https://polkadot.subscan.io/account/${d.address}`,
+                                '_blank',
+                            );
+                        });
                     return accountGroup;
                 },
                 undefined,
