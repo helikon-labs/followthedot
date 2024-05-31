@@ -25,7 +25,6 @@ class FTD {
 
     async init() {
         this.ui.init();
-        await this.connect();
     }
 
     async connect() {
