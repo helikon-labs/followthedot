@@ -58,7 +58,7 @@ a:link,
 a:visited,
 a:hover,
 a:active {
-    color: #ffffffdd;
+    color: #232323;
     cursor: pointer;
 }
 
@@ -100,12 +100,22 @@ a:active {
     flex-direction: column;
     gap: 3px;
 }
+.logo-container em {
+    font-size: 12px;
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.logo-container em:hover {
+    opacity: 0.85;
+}
 
 .logo-container div {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-content: center;
+    align-items: center;
     gap: 8px;
     font-family: 'Cutive Mono', monospace;
     font-weight: 400;
@@ -368,4 +378,38 @@ img {
 #helikon-icon,
 #github-icon {
     filter: invert(1);
+}
+
+div.help {
+    width: 360px;
+    border-radius: 16px;
+    border: 1px solid #0003;
+    padding: 12px;
+    background: #fffe;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 22px;
+}
+
+div.help .title {
+    background: #EFEFEF;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+div.help .about {
+    margin-top: 16px;
+}
+
+div.help .title em {
+    color: #0008;
+    cursor: pointer;
+    padding: 5px 0 5px 5px;
 }

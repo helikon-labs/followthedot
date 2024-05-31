@@ -14,14 +14,32 @@ class UI {
     private readonly eventBus = EventBus.getInstance();
     private readonly graph;
     private readonly searchBar: SearchBar;
+    private readonly help: HTMLDivElement;
+    private readonly showHelpButton: HTMLElement;
+    private readonly hideHelpButton: HTMLElement;
     private readonly loading: HTMLDivElement;
     private readonly api: API;
-    private readonly initialAddress = '13JJDv1yBfMtP1E66pHvm1ysreAXqkZHxY5jqFR4yKPfL2iB';
+    private readonly initialAddresses = [
+        '1wpTXaBGoyLNTDF9bosbJS3zh8V8D2ta7JKacveCkuCm7s6',
+        '1EpEiYpWRAWmte4oPLtR5B1TZFxcBShBdjK4X9wWnq2KfLK',
+        '15fTH34bbKGMUjF1bLmTqxPYgpg481imThwhWcQfCyktyBzL',
+        '13JJDv1yBfMtP1E66pHvm1ysreAXqkZHxY5jqFR4yKPfL2iB',
+        '1eUsBZgJuvpmVNBrBSRQ9gjPTuH6QMAnQrdwQ1ZXwa5FEvo',
+    ];
 
     constructor(network: Network) {
         this.root = <HTMLElement>document.getElementById('root');
         this.background = <HTMLDivElement>document.getElementById('background');
         this.content = <HTMLDivElement>document.getElementById('content');
+        this.help = <HTMLDivElement>document.getElementById('help');
+        this.showHelpButton = <HTMLElement>document.getElementById('show-help-button');
+        this.hideHelpButton = <HTMLElement>document.getElementById('hide-help-button');
+        this.showHelpButton.addEventListener('click', (_event) => {
+            show(this.help);
+        });
+        this.hideHelpButton.addEventListener('click', (_event) => {
+            hide(this.help);
+        });
         this.searchBar = new SearchBar(network, (account: Account) => {
             this.loadAccountGraph(account.address);
         });
@@ -39,8 +57,9 @@ class UI {
 
     async init() {
         this.animate();
-        const data = await this.api.getAccountGraph(this.initialAddress);
-        this.graph.appendData(this.initialAddress, data);
+        const initialAddress = this.initialAddresses[Math.floor(Math.random() * this.initialAddresses.length)];
+        const data = await this.api.getAccountGraph(initialAddress);
+        this.graph.appendData(initialAddress, data);
         hide(this.loading);
     }
 

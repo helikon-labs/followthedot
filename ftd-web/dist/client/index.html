@@ -4,7 +4,7 @@
         <title>followthedot by Helikon</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" type="image/png" href="./img/icon/favicon.ico" />
+        <link rel="icon" type="image/png" href="./img/icon/ftd-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
@@ -34,6 +34,7 @@
             <div>
                 <img alt="Follow the DOT" src="./img/icon/ftd-icon.svg" />
                 <span>followthedot.live</span>
+                <em class="fas fa-question-circle" id="show-help-button"></em>
             </div>
             <span class="version">v0.1.0-ALPHA</span>
         </div>
@@ -65,6 +66,20 @@
             <a href="https://polkadot.network" target="_blank" rel="noopener">
                 <img id="polkadot-icon" src="./img/icon/polkadot-icon.svg" alt="Polkadot" />
             </a>
+        </div>
+        <div class="help no-display" id="help">
+            <div class="title">
+                <span>HELP</span>
+                <em class="fas fa-close" id="hide-help-button"></em>
+            </div>
+            - Use the search bar at the top to search accounts by identity or address.<br>
+            - Click on account nodes to load new transfers and expand the graph.<br>
+            - Double-click on an account to reload the graph from that account.<br>
+            - Zoom in/out and panning available.<br>
+            <div class="title about">ABOUT</div>
+            FollowTheDot is designed and developed by <a href="https://github.com/kukabi" target="_blank">kukabi</a> (Kutsal Kaan Bilgin) from <a href="https://helikon.io" target="_blank">Helikon</a>.<br>
+            <br>
+            You may view the source code <a href="https://github.com/helikon-labs/followthedot" target="_blank">here</a>.
         </div>
     </body>
 </html>

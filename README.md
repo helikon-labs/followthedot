@@ -1,3 +1,7 @@
-# FollowTheDot
+## FollowTheDot
 
-FollowTheDot (FTD) is a cash-flow indexer and visualizer for the Polkadot ecosystem.
+FollowTheDot is a balance transfer graph visualizer application for Polkadot.
+
+Image.
+
+Documentation and build/run instructions coming soon.
