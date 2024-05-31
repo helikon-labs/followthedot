@@ -127,7 +127,7 @@ pub(crate) async fn account_search_service(
             .search_addresses(query.as_str(), limit)
             .await?;
         addresses.iter().for_each(|address| {
-            if accounts
+            if !accounts
                 .iter()
                 .any(|account| account.address.as_str() == address)
             {

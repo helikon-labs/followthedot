@@ -38,7 +38,7 @@ impl Service for SubscanAccountFetcher {
                 if let Some(account_list) = page.data.as_ref() {
                     log::info!(
                         "There are {} records on page {}.",
-                        account_list.count,
+                        account_list.list.len(),
                         page_index + 1
                     );
                     for account in account_list.list.iter() {
