@@ -268,6 +268,12 @@ a:active {
     font-weight: 500;
 }
 
+.account-subscan-display-label {
+    opacity: 0.75;
+    font-size: 12px;
+    font-weight: 500;
+}
+
 .account-balance-label {
     opacity: 0.65;
     font-size: 12px;
@@ -275,6 +281,11 @@ a:active {
 }
 
 .identity-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.account-merkle-science-icon {
     width: 14px;
     height: 14px;
 }

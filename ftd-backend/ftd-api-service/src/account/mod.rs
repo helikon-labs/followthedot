@@ -194,7 +194,7 @@ pub(crate) async fn account_graph_service(
             .await?
         {
             Some(subscan_account)
-        } else if fetched_subscan_account_count < 5 {
+        } else if fetched_subscan_account_count < 3 {
             match state.subscan_client.get_account(address).await {
                 Ok(subscan_account_search_result) => {
                     state

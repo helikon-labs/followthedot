@@ -76,17 +76,21 @@ interface GraphData {
     transferVolumes: TransferVolume[];
 }
 
-function getAccountDisplay(account: Account): string {
+function getAccountSubscanDisplay(account: Account): string | undefined {
     const merkle = account.subscanAccount?.accountDisplay?.merkle;
     if (merkle) {
         return merkle.tagName;
-    }
-    if (account.subscanAccount?.display) {
+    } else if (account.subscanAccount?.accountDisplay?.accountIndex) {
+        return account.subscanAccount?.accountDisplay?.accountIndex;
+    } else if (account.subscanAccount?.display) {
         return account.subscanAccount?.display;
-    }
-    if (account.subscanAccount?.accountDisplay?.display) {
+    } else if (account.subscanAccount?.accountDisplay?.display) {
         return account.subscanAccount?.accountDisplay?.display;
     }
+    return undefined;
+}
+
+function getAccountDisplay(account: Account): string {
     if (account.identity?.display) {
         return trimText(account.identity.display, Constants.MAX_IDENTITY_DISPLAY_LENGTH);
     }
@@ -124,5 +128,6 @@ export {
     TransferVolume,
     GraphData,
     getAccountDisplay,
+    getAccountSubscanDisplay,
     getAccountConfirmedIcon,
 };

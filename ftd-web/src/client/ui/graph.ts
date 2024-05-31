@@ -3,7 +3,7 @@ import { BaseType, Simulation, SimulationNodeDatum } from 'd3';
 import {
     Account,
     getAccountConfirmedIcon,
-    getAccountDisplay,
+    getAccountDisplay, getAccountSubscanDisplay,
     GraphData,
     TransferVolume,
 } from '../model/ftd-model';
@@ -82,6 +82,41 @@ function transformAccountLabel(d: any, scale: number): string {
     // @ts-ignore
     const groupWidth = group.node()!.getBoundingClientRect().width;
 
+    let balanceLabelYOffset = 24;
+    // set subscan display position
+    const subscanDisplayLabelSelector = `#account-subscan-display-label-${d.address}`;
+    const subscanDisplayLabel = d3.select(subscanDisplayLabelSelector);
+    // @ts-ignore
+    const subscanDisplayLabelWidth = subscanDisplayLabel.node()!.getBoundingClientRect().width;
+    const merkleScienceIconSelector = `#account-merkle-science-icon-${d.address}`;
+    const merkleScienceIcon = d3.select(merkleScienceIconSelector);
+    // @ts-ignore
+    let merkleScienceIconWidth = merkleScienceIcon.node()!.getBoundingClientRect().width;
+    if (!d.subscanAccount?.accountDisplay?.merkle) {
+        merkleScienceIconWidth = 0;
+    }
+    if (subscanDisplayLabelWidth > 0) {
+        balanceLabelYOffset = 46;
+        if (merkleScienceIconWidth > 0) {
+            merkleScienceIcon.attr('opacity', 1.0);
+        } else {
+            merkleScienceIcon.attr('opacity', 0.0);
+        }
+    } else {
+        merkleScienceIcon.attr(
+            'opacity',
+            0.0,
+        );
+    }
+    subscanDisplayLabel.attr(
+        'transform',
+        `translate(${(groupWidth - subscanDisplayLabelWidth + merkleScienceIconWidth) / scale / 2}, 24)`,
+    );
+    merkleScienceIcon.attr(
+        'transform',
+        `translate(${(groupWidth - subscanDisplayLabelWidth - merkleScienceIconWidth - 4) / scale / 2}, 0)`,
+    );
+
     // set balance label position
     const balanceLabelSelector = `#account-balance-label-${d.address}`;
     const balanceLabel = d3.select(balanceLabelSelector);
@@ -89,7 +124,7 @@ function transformAccountLabel(d: any, scale: number): string {
     const balanceLabelWidth = balanceLabel.node()!.getBoundingClientRect().width;
     balanceLabel.attr(
         'transform',
-        `translate(${(groupWidth - balanceLabelWidth) / scale / 2}, 24)`,
+        `translate(${(groupWidth - balanceLabelWidth) / scale / 2}, ${balanceLabelYOffset})`,
     );
 
     // set identicon position & size
@@ -190,6 +225,7 @@ class Graph {
     private readonly initialScale = 0.7;
     private readonly initialTransform = d3.zoomIdentity.scale(this.initialScale);
     private loadedAddresses: string[] = [];
+    private clickTimeout?: NodeJS.Timeout = undefined;
 
     constructor(
         onClickAccount: (address: string) => void,
@@ -470,11 +506,13 @@ class Graph {
                         })
                         .on('click', (e, d) => {
                             if (this.loadedAddresses.indexOf(d.address) < 0) {
-                                this.onClickAccount(d.address);
                                 d3.select(`#account-${d.address}`).attr('cursor', 'all-scroll');
+                                clearTimeout(this.clickTimeout);
+                                this.clickTimeout = setTimeout(() => { this.onClickAccount(d.address); }, 200);
                             }
                         })
                         .on('dblclick', (e, d) => {
+                            clearTimeout(this.clickTimeout);
                             this.onDoubleClickAccount(d.address);
                         });
 
@@ -482,18 +520,6 @@ class Graph {
                         .append('g')
                         .attr('id', (account: Account) => `account-label-${account.address}`)
                         .attr('class', 'account-label');
-                    accountLabel
-                        .append('svg:image')
-                        .attr(
-                            'xlink:href',
-                            (account: Account) => getAccountConfirmedIcon(account) ?? '',
-                        )
-                        // .attr('x', -44)
-                        .attr('class', 'identity-icon')
-                        .attr('y', -7)
-                        .attr('opacity', (account: Account) =>
-                            getAccountConfirmedIcon(account) ? 1.0 : 0,
-                        );
                     accountLabel
                         .append('svg:image')
                         .attr(
@@ -530,6 +556,35 @@ class Graph {
                                 balance = account.balance.free;
                             }
                             return formatNumber(balance, Polkadot.DECIMAL_COUNT, 2, 'DOT');
+                        })
+                        .style('pointer-events', 'none');
+                    accountLabel
+                        .append('svg:image')
+                        .attr(
+                            'xlink:href',
+                            './img/icon/merkle-science-icon.svg',
+                        )
+                        .attr(
+                            'id',
+                            (account: Account) => `account-merkle-science-icon-${account.address}`,
+                        )
+                        .attr('class', 'account-merkle-science-icon')
+                        .attr('y', 12)
+                        .attr('opacity', 1.0);
+                    accountLabel
+                        .append('text')
+                        .attr(
+                            'id',
+                            (account: Account) => `account-subscan-display-label-${account.address}`,
+                        )
+                        .attr('class', 'account-subscan-display-label')
+                        .text((account: Account) => {
+                            const display = getAccountDisplay(account);
+                            const subscanDisplay = getAccountSubscanDisplay(account);
+                            if (subscanDisplay && subscanDisplay != display) {
+                                return subscanDisplay;
+                            }
+                            return '';
                         })
                         .style('pointer-events', 'none');
                     accountLabel

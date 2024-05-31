@@ -13,7 +13,7 @@ interface UI {
 class SearchBar {
     private readonly onSelectAccount: (account: Account) => void;
     private readonly ui: UI;
-    private inputDebounceTimer?: NodeJS.Timeout = undefined;
+    private inputDebounceTimeout?: NodeJS.Timeout = undefined;
     private api: API;
     private accounts: Account[] = [];
 
@@ -28,9 +28,9 @@ class SearchBar {
         hide(this.ui.animation);
         hide(this.ui.resultContainer);
         this.ui.input.oninput = () => {
-            clearTimeout(this.inputDebounceTimer);
+            clearTimeout(this.inputDebounceTimeout);
             this.clearAccounts();
-            this.inputDebounceTimer = setTimeout(() => {
+            this.inputDebounceTimeout = setTimeout(() => {
                 this.search();
             }, 300);
         };

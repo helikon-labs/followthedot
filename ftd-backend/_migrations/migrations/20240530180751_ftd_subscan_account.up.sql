@@ -20,4 +20,4 @@ CREATE TABLE IF NOT EXISTS ftd_subscan_account
 );
 
 CREATE INDEX IF NOT EXISTS ftd_subscan_account_idx_address
-    ON ftd_subscan_account (address);
+    ON ftd_subscan_account USING GIN (address gin_trgm_ops);
