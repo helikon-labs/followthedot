@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS ftd_subscan_account
     id                          SERIAL PRIMARY KEY,
     address                     VARCHAR(64)                 NOT NULL,
     display                     VARCHAR(2048),
+    account_index               VARCHAR(2048),
     account_display             VARCHAR(2048),
     account_identity            BOOLEAN,
     parent_address              VARCHAR(64),

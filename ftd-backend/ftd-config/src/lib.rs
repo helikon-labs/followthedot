@@ -102,6 +102,7 @@ pub struct APIConfig {
 pub struct SubscanConfig {
     pub api_key: String,
     pub account_data_url: String,
+    pub account_list_url: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]

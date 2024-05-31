@@ -19,6 +19,7 @@ pub fn init(config: &Config) {
     builder.filter(Some("ftd_metrics_server"), log_level);
     builder.filter(Some("ftd_persistence"), log_level);
     builder.filter(Some("ftd_sidecar_client"), log_level);
+    builder.filter(Some("ftd_subscan_account_fetcher"), log_level);
     builder.filter(Some("ftd_subscan_client"), log_level);
     builder.filter(Some("ftd_substrate_client"), log_level);
     builder.filter(Some("ftd_transfer_volume_updater"), log_level);

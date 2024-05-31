@@ -31,8 +31,8 @@ class UI {
             },
             (address: string) => {
                 this.loadAccountGraph(address);
-            }
-        )
+            },
+        );
         this.loading = <HTMLDivElement>document.getElementById('loading-container');
         this.api = new API(network.apiHost, network.apiPort);
     }

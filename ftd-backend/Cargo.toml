@@ -10,6 +10,7 @@ members = [
     "ftd-persistence",
     "ftd-service",
     "ftd-sidecar-client",
+    "ftd-subscan-account-fetcher",
     "ftd-subscan-client",
     "ftd-substrate-client",
     "ftd-transfer-volume-updater",

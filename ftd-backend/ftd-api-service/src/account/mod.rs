@@ -169,6 +169,7 @@ pub(crate) async fn account_graph_service(
         addresses.insert(transfer_volume.to.clone());
     });
     let mut accounts = Vec::new();
+    let mut fetched_subscan_account_count = 0;
     for address in addresses.iter() {
         let identity = state
             .relational_storage
@@ -186,24 +187,35 @@ pub(crate) async fn account_graph_service(
         } else {
             None
         };
+
         let subscan_account = if let Some(subscan_account) = state
             .relational_storage
             .get_subscan_account_by_address(address)
             .await?
         {
-            subscan_account
+            Some(subscan_account)
+        } else if fetched_subscan_account_count < 5 {
+            match state.subscan_client.get_account(address).await {
+                Ok(subscan_account_search_result) => {
+                    state
+                        .relational_storage
+                        .save_subscan_account(&subscan_account_search_result.data.account)
+                        .await?;
+                    fetched_subscan_account_count += 1;
+                    Some(subscan_account_search_result.data.account)
+                }
+                Err(error) => {
+                    log::error!(
+                        "Error while getting Subscan account {}: {:?}",
+                        address,
+                        error
+                    );
+                    fetched_subscan_account_count += 1;
+                    None
+                }
+            }
         } else {
-            let subscan_account = state
-                .subscan_client
-                .get_account(address)
-                .await?
-                .data
-                .account;
-            state
-                .relational_storage
-                .save_subscan_account(&subscan_account)
-                .await?;
-            subscan_account
+            None
         };
         accounts.push(Account {
             address: address.to_string(),
@@ -211,13 +223,7 @@ pub(crate) async fn account_graph_service(
             sub_identity,
             super_identity,
             balance: None,
-            subscan_account: if subscan_account.display.is_some()
-                || subscan_account.account_display.is_some()
-            {
-                Some(subscan_account)
-            } else {
-                None
-            },
+            subscan_account,
         })
     }
     set_account_balances(&state.substrate_client, &mut accounts).await?;

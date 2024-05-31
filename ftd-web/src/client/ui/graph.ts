@@ -18,7 +18,6 @@ const ACCOUNT_RADIUS = 90;
 const BALANCE_DENOMINATOR = BigInt(10_000_000);
 
 type SVG_SVG_SELECTION = d3.Selection<SVGSVGElement, unknown, HTMLElement, any>;
-type SVG_CIRCLE_SELECTION = d3.Selection<BaseType | SVGCircleElement, unknown, SVGGElement, any>;
 type SVG_BASE_SELECTION = d3.Selection<BaseType, unknown, SVGGElement, any>;
 type SVG_GROUP_SELECTION = d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 type SVG_TEXT_SELECTION = d3.Selection<BaseType | SVGTextElement, unknown, SVGGElement, any>;
@@ -188,9 +187,8 @@ class Graph {
             this.transferGroup.attr('transform', e.transform);
             this.accountGroup.attr('transform', e.transform);
         });
-    private readonly initialScale = 0.70;
-    private readonly initialTransform = d3.zoomIdentity
-        .scale(this.initialScale);
+    private readonly initialScale = 0.7;
+    private readonly initialTransform = d3.zoomIdentity.scale(this.initialScale);
     private loadedAddresses: string[] = [];
 
     constructor(
@@ -253,13 +251,17 @@ class Graph {
     }
 
     private tick(
-        accounts: SVG_CIRCLE_SELECTION,
-        accountLabels: SVG_BASE_SELECTION,
+        accounts: SVG_BASE_SELECTION,
         transfers: SVG_TEXT_SELECTION,
         transferLabels: SVG_BASE_SELECTION,
     ) {
-        accounts.attr('cx', (d: any) => d.x).attr('cy', (d: any) => d.y);
-        accountLabels.attr('transform', (d: any) => transformAccountLabel(d, this.scale));
+        accounts
+            .select('circle.account')
+            .attr('cx', (d: any) => d.x)
+            .attr('cy', (d: any) => d.y);
+        accounts
+            .select('g.account-label')
+            .attr('transform', (d: any) => transformAccountLabel(d, this.scale));
         transfers
             .attr('d', (d: any) => `M${d.source.x},${d.source.y} L${d.target.x},${d.target.y}`)
             .attr('transform', (d: any) => {
@@ -433,11 +435,15 @@ class Graph {
 
     private displayAccounts(): SVG_BASE_SELECTION {
         return this.accountGroup
-            .selectAll('circle.account')
+            .selectAll('g.account')
             .data(this.accounts, (d: any) => d.address)
             .join(
                 (enter) => {
-                    const accounts = enter
+                    const accountGroup = enter.append('g').attr('class', 'account');
+                    accountGroup.append('title').text((d) => truncateAddress(d.address));
+                    // @ts-ignore
+                    accountGroup.call(this.drag);
+                    accountGroup
                         .append('circle')
                         .attr('id', (d) => `account-${d.address}`)
                         .attr('class', 'account')
@@ -449,7 +455,7 @@ class Graph {
                             getAccountStrokeOpacity(account),
                         )
                         .attr('r', ACCOUNT_RADIUS)
-                        .on('mouseover',  (e, d) => {
+                        .on('mouseover', (e, d) => {
                             let cursor = 'cell';
                             if (this.loadedAddresses.indexOf(d.address) >= 0) {
                                 cursor = 'all-scroll';
@@ -471,26 +477,23 @@ class Graph {
                         .on('dblclick', (e, d) => {
                             this.onDoubleClickAccount(d.address);
                         });
-                    accounts.append('title').text((d) => truncateAddress(d.address));
-                    // @ts-ignore
-                    accounts.call(this.drag);
-                    return accounts;
-                },
-                undefined,
-                (exit) => exit.remove(),
-            );
-    }
 
-    private displayAccountLabels(): SVG_BASE_SELECTION {
-        return this.accountGroup
-            .selectAll('g.account-label')
-            .data(this.accounts, (a: any) => a.address)
-            .join(
-                (enter) => {
-                    const accountLabel = enter
+                    const accountLabel = accountGroup
                         .append('g')
                         .attr('id', (account: Account) => `account-label-${account.address}`)
                         .attr('class', 'account-label');
+                    accountLabel
+                        .append('svg:image')
+                        .attr(
+                            'xlink:href',
+                            (account: Account) => getAccountConfirmedIcon(account) ?? '',
+                        )
+                        // .attr('x', -44)
+                        .attr('class', 'identity-icon')
+                        .attr('y', -7)
+                        .attr('opacity', (account: Account) =>
+                            getAccountConfirmedIcon(account) ? 1.0 : 0,
+                        );
                     accountLabel
                         .append('svg:image')
                         .attr(
@@ -534,7 +537,8 @@ class Graph {
                         .attr('id', (d) => `account-identicon-${d.address}`)
                         .html((d) => getIdenticon(d.address))
                         .style('pointer-events', 'none');
-                    return accountLabel;
+
+                    return accountGroup;
                 },
                 undefined,
                 (exit) => exit.remove(),
@@ -546,14 +550,13 @@ class Graph {
         const transfers = this.displayTransfers();
         const transferLabels = this.displayTransferLabels();
         const accounts = this.displayAccounts();
-        const accountLabel = this.displayAccountLabels();
 
         // update simulation
         this.simulation.nodes(this.accounts);
         // @ts-ignore
         this.simulation.force('link')!.links(this.transferVolumes);
         this.simulation.on('tick', () => {
-            this.tick(accounts, accountLabel, transfers, transferLabels);
+            this.tick(accounts, transfers, transferLabels);
         });
         this.simulation.alpha(0.75).restart();
     }

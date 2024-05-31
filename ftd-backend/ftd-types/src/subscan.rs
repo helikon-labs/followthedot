@@ -1,8 +1,23 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct SubscanGetAccountByAddressBody {
-    pub key: String,
+pub struct SubscanAccountListBody {
+    pub order: String,
+    pub order_field: String,
+    pub page: u32,
+    pub row: u8,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct SubscanAccountListResult {
+    pub code: u32,
+    pub data: Option<SubscanAccountList>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct SubscanAccountList {
+    pub count: u64,
+    pub list: Vec<SubscanAccount>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -21,13 +36,15 @@ pub struct SubscanAccount {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display: Option<String>,
     #[serde(rename(serialize = "accountDisplay"))]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub account_display: Option<SubscanAccountDisplay>,
+    pub account_display: SubscanAccountDisplay,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SubscanAccountDisplay {
     pub address: String,
+    #[serde(rename(serialize = "accountIndex"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub account_index: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

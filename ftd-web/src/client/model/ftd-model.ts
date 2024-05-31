@@ -33,14 +33,15 @@ interface SubscanParentAccountDisplay {
 }
 
 interface SubscanMerkleScienceAccountInfo {
-    addressType: string,
-    tagType?: string,
-    tagSubtype?: string,
-    tagName: string,
+    addressType: string;
+    tagType?: string;
+    tagSubtype?: string;
+    tagName: string;
 }
 
 interface SubscanAccountDisplay {
     address: string;
+    accountIndex?: string;
     display?: string;
     identity?: boolean;
     parent?: SubscanParentAccountDisplay;
@@ -48,9 +49,9 @@ interface SubscanAccountDisplay {
 }
 
 interface SubscanAccount {
-    address: string,
-    display?: string,
-    accountDisplay?: SubscanAccountDisplay,
+    address: string;
+    display?: string;
+    accountDisplay?: SubscanAccountDisplay;
 }
 
 interface Account {
@@ -76,6 +77,16 @@ interface GraphData {
 }
 
 function getAccountDisplay(account: Account): string {
+    const merkle = account.subscanAccount?.accountDisplay?.merkle;
+    if (merkle) {
+        return merkle.tagName;
+    }
+    if (account.subscanAccount?.display) {
+        return account.subscanAccount?.display;
+    }
+    if (account.subscanAccount?.accountDisplay?.display) {
+        return account.subscanAccount?.accountDisplay?.display;
+    }
     if (account.identity?.display) {
         return trimText(account.identity.display, Constants.MAX_IDENTITY_DISPLAY_LENGTH);
     }

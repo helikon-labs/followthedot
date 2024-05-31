@@ -1,5 +1,7 @@
 use ftd_config::Config;
-use ftd_types::subscan::SubscanAccountSearchResult;
+use ftd_types::subscan::{
+    SubscanAccountListBody, SubscanAccountListResult, SubscanAccountSearchResult,
+};
 use reqwest::Client;
 use rustc_hash::FxHashMap as HashMap;
 
@@ -40,6 +42,27 @@ impl SubscanClient {
             .send()
             .await?
             .json::<SubscanAccountSearchResult>()
+            .await?)
+    }
+
+    pub async fn get_account_list(
+        &self,
+        page_index: u32,
+    ) -> anyhow::Result<SubscanAccountListResult> {
+        let body = SubscanAccountListBody {
+            order: "desc".to_string(),
+            order_field: "balance".to_string(),
+            page: page_index,
+            row: 100,
+        };
+        Ok(self
+            .http_client
+            .post(self.config.subscan.account_list_url.as_str())
+            .header("x-api-key", self.config.subscan.api_key.as_str())
+            .json(&body)
+            .send()
+            .await?
+            .json::<SubscanAccountListResult>()
             .await?)
     }
 }
