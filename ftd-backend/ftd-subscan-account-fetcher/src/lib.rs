@@ -28,7 +28,7 @@ impl Service for SubscanAccountFetcher {
         log::info!("Subscan account fetcher started.");
         let subscan_client = SubscanClient::new(&CONFIG)?;
         let storage = RelationalStorage::new().await?;
-        let sleep_seconds = CONFIG.common.recovery_retry_seconds;
+        let sleep_seconds = CONFIG.subscan.sleep_seconds;
         loop {
             fetched_account_count().reset();
             let mut page_index = 0;

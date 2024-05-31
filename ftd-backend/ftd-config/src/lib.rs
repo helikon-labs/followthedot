@@ -103,6 +103,7 @@ pub struct SubscanConfig {
     pub api_key: String,
     pub account_data_url: String,
     pub account_list_url: String,
+    pub sleep_seconds: u64,
 }
 
 #[derive(Clone, Debug, Deserialize)]

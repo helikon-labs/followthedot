@@ -43,6 +43,7 @@ graph_search_limit = 100
 api_key = "subscan_api_key"
 account_data_url = "https://polkadot.api.subscan.io/api/v2/scan/search"
 account_list_url = "https://polkadot.api.subscan.io/api/v2/scan/accounts"
+sleep_seconds = 10
 
 [indexer]
 start_block_number = 12_000_000
