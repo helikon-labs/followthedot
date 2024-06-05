@@ -50,7 +50,7 @@ impl Service for GraphUpdater {
     fn get_metrics_server_addr() -> (&'static str, u16) {
         (
             CONFIG.metrics.host.as_str(),
-            CONFIG.metrics.transfer_volume_updater_port,
+            CONFIG.metrics.graph_updater_port,
         )
     }
 

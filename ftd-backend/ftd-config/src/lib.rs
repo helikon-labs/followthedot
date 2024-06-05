@@ -112,6 +112,8 @@ pub struct MetricsConfig {
     pub indexer_port: u16,
     pub transfer_volume_updater_port: u16,
     pub identity_updater_port: u16,
+    pub graph_updater_port: u16,
+    pub subscan_account_fetcher_port: u16,
     pub api_service_port: u16,
 }
 

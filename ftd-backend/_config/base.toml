@@ -55,7 +55,9 @@ sleep_seconds = 10
 
 [metrics]
 host = "127.0.0.1"
-indexer_port = 11000
-transfer_volume_updater_port = 11010
-identity_updater_port = 11011
-api_service_port = 11013
+indexer_port = 11010
+transfer_volume_updater_port = 11011
+identity_updater_port = 11012
+graph_updater_port = 11013
+subscan_account_fetcher_port = 11014
+api_service_port = 11015
