@@ -37,6 +37,7 @@ impl GraphUpdater {
                     .update_last_processed_transfer_id(&mut tx, id)
                     .await?;
                 graph_storage.commit_tx(tx).await?;
+                metrics::processed_transfer_id().set(id as i64);
             }
         }
         log::info!("Max transfer id {max_transfer_id} is processed.");

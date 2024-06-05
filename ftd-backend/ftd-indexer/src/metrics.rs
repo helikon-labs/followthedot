@@ -1,12 +1,12 @@
 use ftd_metrics::registry::{Histogram, IntGauge};
 use once_cell::sync::Lazy;
 
-const _METRIC_PREFIX: &str = "ftd_indexer";
+const METRIC_PREFIX: &str = "ftd_indexer";
 
-pub fn _processed_finalized_block_number() -> IntGauge {
+pub fn indexed_finalized_block_number() -> IntGauge {
     static METER: Lazy<IntGauge> = Lazy::new(|| {
         ftd_metrics::registry::register_int_gauge(
-            _METRIC_PREFIX,
+            METRIC_PREFIX,
             "indexed_finalized_block_number",
             "Number of the last processed block",
         )
@@ -15,10 +15,10 @@ pub fn _processed_finalized_block_number() -> IntGauge {
     METER.clone()
 }
 
-pub fn _block_processing_time_ms() -> Histogram {
+pub fn block_indexing_time_ms() -> Histogram {
     static METER: Lazy<Histogram> = Lazy::new(|| {
         ftd_metrics::registry::register_histogram(
-            _METRIC_PREFIX,
+            METRIC_PREFIX,
             "block_indexing_time_ms",
             "Block indexing time in milliseconds",
             vec![

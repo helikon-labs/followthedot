@@ -24,14 +24,21 @@ impl IdentityUpdater {
     ) -> anyhow::Result<()> {
         log::info!("Get identity @ finalized block {}.", block_number);
         let identities = substrate_client.get_identities(block_hash).await?;
+        metrics::last_identity_list_fetch_timestamp_ms().set(chrono::Utc::now().timestamp_millis());
         log::info!("Got {} identities.", identities.len());
         relational_storage.save_identities(&identities).await?;
+        metrics::last_identity_list_persist_timestamp_ms()
+            .set(chrono::Utc::now().timestamp_millis());
         log::info!("Saved identities.");
         let sub_identities = substrate_client.get_sub_identities(block_hash).await?;
+        metrics::last_sub_identity_list_fetch_timestamp_ms()
+            .set(chrono::Utc::now().timestamp_millis());
         log::info!("Got {} sub identities.", sub_identities.len());
         relational_storage
             .save_sub_identities(&sub_identities)
             .await?;
+        metrics::last_sub_identity_list_persist_timestamp_ms()
+            .set(chrono::Utc::now().timestamp_millis());
         Ok(())
     }
 }
@@ -51,6 +58,8 @@ impl Service for IdentityUpdater {
         let substrate_client = SubstrateClient::new(&CONFIG).await?;
         let sleep_seconds = CONFIG.identity_updater.sleep_seconds;
         loop {
+            log::info!("Update identities started.");
+            metrics::last_run_timestamp_ms().set(chrono::Utc::now().timestamp_millis());
             let block_hash = substrate_client
                 .get_finalized_block_hash()
                 .await?
@@ -68,11 +77,13 @@ impl Service for IdentityUpdater {
                 .await
             {
                 Ok(()) => {
+                    metrics::last_success_status().set(1);
                     relational_storage
                         .set_identity_updater_state(block_hash.as_str(), block_number, true, None)
                         .await?;
                 }
                 Err(error) => {
+                    metrics::last_success_status().set(0);
                     let error_log = format!("{:?}", error);
                     relational_storage
                         .set_identity_updater_state(

@@ -48,12 +48,13 @@ impl SubscanClient {
     pub async fn get_account_list(
         &self,
         page_index: u32,
+        page_size: u8,
     ) -> anyhow::Result<SubscanAccountListResult> {
         let body = SubscanAccountListBody {
             order: "desc".to_string(),
             order_field: "balance".to_string(),
             page: page_index,
-            row: 100,
+            row: page_size,
         };
         Ok(self
             .http_client

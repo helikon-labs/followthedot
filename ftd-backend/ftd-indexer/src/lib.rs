@@ -84,18 +84,26 @@ impl Service for Indexer {
                         range_start_block_number,
                         range_end_block_number
                     );
+                    let start = std::time::Instant::now();
                     let blocks = sidecar
                         .get_range_of_blocks(range_start_block_number, range_end_block_number)
                         .await?;
-                    for block in blocks {
+                    for block in &blocks {
                         storage.save_block(block.clone()).await?;
+                        metrics::indexed_finalized_block_number().set(block.number as i64);
                         log::info!("Persisted block {}.", block.number);
                     }
+                    let ms_per_block = (start.elapsed().as_millis() as f64) / (blocks.len() as f64);
+                    metrics::block_indexing_time_ms().observe(ms_per_block);
                 } else {
                     for block_number in block_numbers {
+                        let start = std::time::Instant::now();
                         let block = sidecar.get_block_by_number(*block_number).await?;
                         let block_number = block.number;
                         storage.save_block(block).await?;
+                        metrics::block_indexing_time_ms()
+                            .observe(start.elapsed().as_millis() as f64);
+                        metrics::indexed_finalized_block_number().set(block_number as i64);
                         log::info!("Persisted block {}.", block_number);
                     }
                 }

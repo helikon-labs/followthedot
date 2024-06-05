@@ -44,6 +44,7 @@ impl Service for TransferVolumeUpdater {
                         storage
                             .set_transfer_volume_updater_last_processed_transfer_id(id)
                             .await?;
+                        metrics::processed_transfer_id().set(id as i64);
                     } else {
                         log::warn!("Transfer id {id} not found.");
                     }
