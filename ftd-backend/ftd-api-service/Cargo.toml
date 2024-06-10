@@ -6,7 +6,7 @@ rust-version = "1.77.2"
 authors = ["kukabi <kutsal@helikon.io>"]
 
 [dependencies]
-actix-web = "4.6"
+actix-web = "4.7"
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 config = { workspace = true }
