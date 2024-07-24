@@ -57,7 +57,8 @@ class UI {
 
     async init() {
         this.animate();
-        const initialAddress = this.initialAddresses[Math.floor(Math.random() * this.initialAddresses.length)];
+        const initialAddress =
+            this.initialAddresses[Math.floor(Math.random() * this.initialAddresses.length)];
         const data = await this.api.getAccountGraph(initialAddress);
         this.graph.appendData(initialAddress, data);
         hide(this.loading);
