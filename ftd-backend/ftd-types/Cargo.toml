@@ -8,10 +8,10 @@ rust-version = "1.77.2"
 anyhow = { workspace = true }
 frame-support = { workspace = true }
 hex = { workspace = true }
-pallet-identity = "34.0"
+pallet-identity = "37.0.0"
 parity-scale-codec = "3.6"
-pallet-balances = "35.0"
-frame-system = "34.0"
+pallet-balances = "38.0.0"
+frame-system = "37.0.0"
 serde = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 thiserror = { workspace = true }
