@@ -7,12 +7,9 @@ use ftd_types::substrate::account_id::AccountId;
 use rustc_hash::FxHashSet as HashSet;
 use serde::Deserialize;
 use std::str::FromStr;
-use std::sync::Arc;
 
-async fn set_account_balances(
-    substrate_client: &Arc<SubstrateClient>,
-    accounts: &mut [Account],
-) -> anyhow::Result<()> {
+async fn set_account_balances(accounts: &mut [Account]) -> anyhow::Result<()> {
+    let substrate_client = SubstrateClient::new(&CONFIG).await?;
     let account_ids: Vec<AccountId> = accounts
         .iter()
         .map(|account| AccountId::from_str(account.address.as_str()).unwrap())
@@ -142,7 +139,7 @@ pub(crate) async fn account_search_service(
             }
         })
     }
-    set_account_balances(&state.substrate_client, &mut accounts).await?;
+    set_account_balances(&mut accounts).await?;
     Ok(HttpResponse::Ok().json(accounts))
 }
 
@@ -226,7 +223,7 @@ pub(crate) async fn account_graph_service(
             subscan_account,
         })
     }
-    set_account_balances(&state.substrate_client, &mut accounts).await?;
+    set_account_balances(&mut accounts).await?;
     Ok(HttpResponse::Ok().json(AccountGraph {
         accounts,
         transfer_volumes,

@@ -6,7 +6,6 @@ use ftd_persistence::relational::RelationalStorage;
 use ftd_service::err::InternalServerError;
 use ftd_service::Service;
 use ftd_subscan_client::SubscanClient;
-use ftd_substrate_client::SubstrateClient;
 use futures_util::future::FutureExt;
 use lazy_static::lazy_static;
 use std::sync::Arc;
@@ -25,7 +24,6 @@ pub(crate) type ResultResponse = Result<HttpResponse, InternalServerError>;
 pub(crate) struct ServiceState {
     relational_storage: Arc<RelationalStorage>,
     graph_storage: Arc<GraphStorage>,
-    substrate_client: Arc<SubstrateClient>,
     subscan_client: Arc<SubscanClient>,
 }
 
@@ -48,7 +46,6 @@ impl Service for APIService {
     async fn run(&'static self) -> anyhow::Result<()> {
         let graph_storage = Arc::new(GraphStorage::new().await?);
         let relational_storage = Arc::new(RelationalStorage::new().await?);
-        let substrate_client = Arc::new(SubstrateClient::new(&CONFIG).await?);
         let subscan_client = Arc::new(SubscanClient::new(&CONFIG)?);
 
         log::info!("Starting HTTP service.");
@@ -57,7 +54,6 @@ impl Service for APIService {
                 .app_data(web::Data::new(ServiceState {
                     relational_storage: relational_storage.clone(),
                     graph_storage: graph_storage.clone(),
-                    substrate_client: substrate_client.clone(),
                     subscan_client: subscan_client.clone(),
                 }))
                 .wrap_fn(|request, service| {
