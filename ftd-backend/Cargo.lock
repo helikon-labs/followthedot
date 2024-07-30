@@ -2108,15 +2108,15 @@ checksum = "40ecd4077b5ae9fd2e9e169b102c6c330d0605168eb0e8bf79952b256dbefffd"
 
 [[package]]
 name = "gloo-net"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43aaa242d1239a8822c15c645f02166398da4f8b5c4bae795c1f5b44e9eee173"
+checksum = "c06f627b1a58ca3d42b45d6104bf1e1a03799df472df00988b6ba21accc10580"
 dependencies = [
  "futures-channel",
  "futures-core",
  "futures-sink",
  "gloo-utils",
- "http 0.2.12",
+ "http 1.1.0",
  "js-sys",
  "pin-project",
  "serde",
@@ -2700,9 +2700,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e419d6c39cb9632288c592a06d7d0a96740021b0bff812e211ace754b0fe8c9a"
+checksum = "1568257acc17d60cd19c61b8e2b068f0d706399bbf9ebf8afdb08f7fe824721f"
 dependencies = [
  "jsonrpsee-client-transport",
  "jsonrpsee-core",
@@ -2718,9 +2718,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-client-transport"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8b6dc3b1e2da087969e69a095e7d6127966c8c194490b311017bb2053a7d5a1"
+checksum = "37f545bed6cf5cea796c1ef50ccb87a8fa613f36f2141ec85c56f3eefc03ae55"
 dependencies = [
  "base64 0.22.1",
  "futures-channel",
@@ -2743,9 +2743,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-core"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d06b8be79a3bdd7d87c1d95c0e939052b7f64fffce7b9436986e43e92f20a978"
+checksum = "e6e188cdec4745cfb6174608f10c3d8c6ea57e986b636b0d6de53aafef29c7ea"
 dependencies = [
  "async-trait",
  "bytes",
@@ -2770,9 +2770,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-http-client"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52dc99c70619e252e6adc5e95144323505a69a1742771de5b3f2071e1595b363"
+checksum = "e39c8c20007a1fbcdcfb76d771257529f78e7eea81e9de03c52f870e7b13351e"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -2795,9 +2795,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-proc-macros"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4278d453682d9f9671b5261404360cdabd063198a43bb221c5c80e8f8bfb6b1"
+checksum = "8e7cae5320ea42b1f35ff792413330e206146e9ecb9cb6e7ffe12e167bd169ca"
 dependencies = [
  "heck",
  "proc-macro-crate",
@@ -2808,9 +2808,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-server"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c358788aa585f51a78b11bec5d4b16fbe26dda1cc149f21d95dc24836a0be83"
+checksum = "ff967386dfa9e89ea6de6ee75ee0e87ee28fbff896e0282f646f47ce158a3ae3"
 dependencies = [
  "futures-util",
  "http 1.1.0",
@@ -2835,9 +2835,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-types"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0feba38a9878d70ccccd2f54b534b15e861d6caa7911d59abfd3e0d8b4de091f"
+checksum = "af7d734a4b0ae276b1e9e31572ab1f0f92d55797f0ca6b661afdd2266dc12756"
 dependencies = [
  "http 1.1.0",
  "serde",
@@ -2847,9 +2847,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-wasm-client"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0da29b570ad645e72c6098716719d2ef58d51a8eb0f084ac5e43a5763839542"
+checksum = "a3db6294ef23107961daf31901331dd672875424500f1aa2a6292f09275125d5"
 dependencies = [
  "jsonrpsee-client-transport",
  "jsonrpsee-core",
@@ -2858,9 +2858,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-ws-client"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e82b1c7fc629c345581d89ad802d53dc11d18df11d4d94d2c95da6e70f8520d3"
+checksum = "be6085716aa39842013cd74e3fe67cda8d3f509cc3917609430c9c28c6016535"
 dependencies = [
  "http 1.1.0",
  "jsonrpsee-client-transport",
