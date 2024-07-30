@@ -2835,9 +2835,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-types"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0feba38a9878d70ccccd2f54b534b15e861d6caa7911d59abfd3e0d8b4de091f"
+checksum = "af7d734a4b0ae276b1e9e31572ab1f0f92d55797f0ca6b661afdd2266dc12756"
 dependencies = [
  "http 1.1.0",
  "serde",
