@@ -2,6 +2,7 @@
 chain = "kusama"
 chain_display = "Kusama"
 rpc_url = "wss://rpc.helikon.io:443/kusama"
+people_rpc_url = "wss://rpc.helikon.io:443/people-kusama"
 sidecar_url = "https://sidecar.helikon.io/kusama"
 token_ticker = "KSM"
 token_decimals = 12

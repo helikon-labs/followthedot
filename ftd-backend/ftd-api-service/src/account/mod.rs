@@ -9,7 +9,12 @@ use serde::Deserialize;
 use std::str::FromStr;
 
 async fn set_account_balances(accounts: &mut [Account]) -> anyhow::Result<()> {
-    let substrate_client = SubstrateClient::new(&CONFIG).await?;
+    let substrate_client = SubstrateClient::new(
+        &CONFIG.substrate.rpc_url,
+        CONFIG.substrate.connection_timeout_seconds,
+        CONFIG.substrate.request_timeout_seconds,
+    )
+    .await?;
     let account_ids: Vec<AccountId> = accounts
         .iter()
         .map(|account| AccountId::from_str(account.address.as_str()).unwrap())

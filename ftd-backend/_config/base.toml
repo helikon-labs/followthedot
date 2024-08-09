@@ -25,6 +25,7 @@ database_name = "neo4j"
 chain = "polkadot"
 chain_display = "Polkadot"
 rpc_url = "wss://rpc.helikon.io:443/polkadot"
+people_rpc_url = "wss://rpc.helikon.io:443/people-polkadot"
 sidecar_url = "https://sidecar.helikon.io/polkadot"
 connection_timeout_seconds = 15
 request_timeout_seconds = 15

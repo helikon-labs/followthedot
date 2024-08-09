@@ -43,6 +43,7 @@ pub struct SubstrateConfig {
     pub chain: String,
     pub chain_display: String,
     pub rpc_url: String,
+    pub people_rpc_url: String,
     pub sidecar_url: String,
     pub connection_timeout_seconds: u64,
     pub request_timeout_seconds: u64,

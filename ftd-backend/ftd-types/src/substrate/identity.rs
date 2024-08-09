@@ -1,7 +1,7 @@
 use crate::substrate::account_id::AccountId;
-use frame_support::pallet_prelude::ConstU32;
-use pallet_identity::legacy::IdentityInfo;
-use pallet_identity::{Data, Judgement, Registration};
+use frame_support::pallet_prelude::{ConstU32, Encode};
+use frame_support::BoundedVec;
+use pallet_identity::{Data, Judgement};
 use parity_scale_codec::Decode;
 use serde::{Deserialize, Serialize};
 
@@ -32,13 +32,30 @@ pub struct Identity {
     pub is_invalid: bool,
 }
 
+#[derive(Clone, Debug, Decode, Encode)]
+pub struct IdentityInfo {
+    pub display: Data,
+    pub legal: Data,
+    pub web: Data,
+    pub riot: Data,
+    pub email: Data,
+    pub pgp_fingerprint: Option<[u8; 20]>,
+    pub image: Data,
+    pub twitter: Data,
+    pub github: Data,
+    pub discord: Data,
+}
+
+#[derive(Clone, Debug, Decode, Encode)]
+struct Registration {
+    pub judgements: BoundedVec<(u32, Judgement<u128>), ConstU32<{ u32::MAX }>>,
+    pub deposit: u128,
+    pub info: IdentityInfo,
+}
+
 impl Identity {
     pub fn from_bytes(account_id: AccountId, mut bytes: &[u8]) -> anyhow::Result<Self> {
-        let registration: Registration<
-            u128,
-            ConstU32<{ u32::MAX }>,
-            IdentityInfo<ConstU32<{ u32::MAX }>>,
-        > = Decode::decode(&mut bytes)?;
+        let registration: Registration = Decode::decode(&mut bytes)?;
         let display = identity_data_to_string(registration.info.display);
         let email = identity_data_to_string(registration.info.email);
         let legal = identity_data_to_string(registration.info.legal);

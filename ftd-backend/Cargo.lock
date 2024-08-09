@@ -1710,7 +1710,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-api-service"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -1735,7 +1735,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-config"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "config",
  "serde",
@@ -1743,7 +1743,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-graph-updater"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1762,7 +1762,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-identity-updater"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1783,7 +1783,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-indexer"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1803,7 +1803,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-logging"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "env_logger",
  "ftd-config",
@@ -1812,7 +1812,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-metrics"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "env_logger",
  "log",
@@ -1825,7 +1825,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-persistence"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "async-recursion",
@@ -1840,7 +1840,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-service"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -1856,7 +1856,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-sidecar-client"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "ftd-config",
@@ -1869,7 +1869,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-subscan-account-fetcher"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1889,7 +1889,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-subscan-client"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "ftd-config",
@@ -1900,7 +1900,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-substrate-client"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "frame-metadata",
@@ -1918,7 +1918,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-transfer-volume-updater"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1937,7 +1937,7 @@ dependencies = [
 
 [[package]]
 name = "ftd-types"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "frame-support",

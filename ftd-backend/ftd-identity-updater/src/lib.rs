@@ -55,7 +55,12 @@ impl Service for IdentityUpdater {
     async fn run(&'static self) -> anyhow::Result<()> {
         log::info!("Identity updater started.");
         let relational_storage = RelationalStorage::new().await?;
-        let substrate_client = SubstrateClient::new(&CONFIG).await?;
+        let substrate_client = SubstrateClient::new(
+            &CONFIG.substrate.people_rpc_url,
+            CONFIG.substrate.connection_timeout_seconds,
+            CONFIG.substrate.request_timeout_seconds,
+        )
+        .await?;
         let sleep_seconds = CONFIG.identity_updater.sleep_seconds;
         loop {
             log::info!("Update identities started.");

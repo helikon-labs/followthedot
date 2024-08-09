@@ -3,7 +3,6 @@ use crate::storage_utility::{
     get_rpc_storage_plain_params, get_storage_plain_key, hash,
 };
 use frame_metadata::v14::StorageHasher;
-use ftd_config::Config;
 use ftd_types::substrate::account_id::AccountId;
 use ftd_types::substrate::balance::Balance;
 use ftd_types::substrate::block::BlockHeader;
@@ -28,16 +27,16 @@ pub struct SubstrateClient {
 }
 
 impl SubstrateClient {
-    pub async fn new(config: &Config) -> anyhow::Result<Self> {
+    pub async fn new(
+        rpc_url: &str,
+        connection_timeout: u64,
+        request_timeout: u64,
+    ) -> anyhow::Result<Self> {
         log::info!("Constructing Substrate client.");
         let ws_client = WsClientBuilder::default()
-            .connection_timeout(std::time::Duration::from_secs(
-                config.substrate.connection_timeout_seconds,
-            ))
-            .request_timeout(std::time::Duration::from_secs(
-                config.substrate.request_timeout_seconds,
-            ))
-            .build(&config.substrate.rpc_url)
+            .connection_timeout(std::time::Duration::from_secs(connection_timeout))
+            .request_timeout(std::time::Duration::from_secs(request_timeout))
+            .build(rpc_url)
             .await?;
         let chain: String = ws_client.request("system_chain", rpc_params!()).await?;
         let chain = Chain::from_str(chain.as_str())?;
