@@ -20,11 +20,11 @@ class UI {
     private readonly loading: HTMLDivElement;
     private readonly api: API;
     private readonly initialAddresses = [
-        '1wpTXaBGoyLNTDF9bosbJS3zh8V8D2ta7JKacveCkuCm7s6',
+        //'1wpTXaBGoyLNTDF9bosbJS3zh8V8D2ta7JKacveCkuCm7s6',
         '1EpEiYpWRAWmte4oPLtR5B1TZFxcBShBdjK4X9wWnq2KfLK',
         '15fTH34bbKGMUjF1bLmTqxPYgpg481imThwhWcQfCyktyBzL',
-        '13JJDv1yBfMtP1E66pHvm1ysreAXqkZHxY5jqFR4yKPfL2iB',
-        '1eUsBZgJuvpmVNBrBSRQ9gjPTuH6QMAnQrdwQ1ZXwa5FEvo',
+        //'13JJDv1yBfMtP1E66pHvm1ysreAXqkZHxY5jqFR4yKPfL2iB',
+        //'1eUsBZgJuvpmVNBrBSRQ9gjPTuH6QMAnQrdwQ1ZXwa5FEvo',
     ];
 
     constructor(network: Network) {
