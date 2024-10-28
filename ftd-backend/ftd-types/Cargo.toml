@@ -1,6 +1,6 @@
 [package]
 name = "ftd-types"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 rust-version = "1.77.2"
 
@@ -8,10 +8,10 @@ rust-version = "1.77.2"
 anyhow = { workspace = true }
 frame-support = { workspace = true }
 hex = { workspace = true }
-pallet-identity = "37.0"
+pallet-identity = "38.0"
 parity-scale-codec = "3.6"
-pallet-balances = "38.0"
-frame-system = "37.0"
+pallet-balances = "39.0"
+frame-system = "38.0"
 serde = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 thiserror = { workspace = true }
