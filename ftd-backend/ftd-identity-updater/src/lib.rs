@@ -89,7 +89,7 @@ impl Service for IdentityUpdater {
                 }
                 Err(error) => {
                     metrics::last_success_status().set(0);
-                    let error_log = format!("{:?}", error);
+                    let error_log = format!("{error:?}");
                     relational_storage
                         .set_identity_updater_state(
                             block_hash.as_str(),

@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{dev::Service as _, web, App, HttpResponse, HttpServer};
 use async_trait::async_trait;
 use ftd_config::Config;
@@ -50,12 +51,22 @@ impl Service for APIService {
 
         log::info!("Starting HTTP service.");
         let server = HttpServer::new(move || {
+            let _cors = Cors::default()
+                .allow_any_origin()
+                .allowed_methods(vec!["GET", "POST", "OPTIONS"])
+                .allowed_headers(vec![
+                    actix_web::http::header::AUTHORIZATION,
+                    actix_web::http::header::CONTENT_TYPE,
+                ])
+                .supports_credentials();
+
             App::new()
                 .app_data(web::Data::new(ServiceState {
                     relational_storage: relational_storage.clone(),
                     graph_storage: graph_storage.clone(),
                     subscan_client: subscan_client.clone(),
                 }))
+                //.wrap(cors)
                 .wrap_fn(|request, service| {
                     metrics::request_counter().inc();
                     metrics::connection_count().inc();

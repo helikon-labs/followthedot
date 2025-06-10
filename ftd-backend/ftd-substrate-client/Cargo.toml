@@ -7,12 +7,10 @@ rust-version = "1.77.2"
 [dependencies]
 anyhow = { workspace = true }
 frame-metadata = { workspace = true, features = ["default"] }
-ftd-config = { path = "../ftd-config" }
 ftd-types = { path = "../ftd-types" }
 hex = { workspace = true }
 jsonrpsee = { workspace = true, features = ["full"] }
 jsonrpsee-core = { workspace = true }
-jsonrpsee-types = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = "3.6"
 rustc-hash = { workspace = true }

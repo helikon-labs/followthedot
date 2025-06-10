@@ -6,7 +6,6 @@ rust-version = "1.77.2"
 authors = ["kukabi <kutsal@helikon.io>"]
 
 [dependencies]
-env_logger = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
 prometheus = { workspace = true }

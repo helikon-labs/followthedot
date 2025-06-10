@@ -163,7 +163,7 @@ impl SidecarClient {
         end_block_number: u64,
     ) -> anyhow::Result<Vec<Block>> {
         let url = format!("{}/blocks", self.base_url);
-        let range = format!("{}-{}", start_block_number, end_block_number);
+        let range = format!("{start_block_number}-{end_block_number}");
         let json = self
             .http_client
             .get(&url)

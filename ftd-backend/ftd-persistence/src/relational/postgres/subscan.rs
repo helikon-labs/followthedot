@@ -62,6 +62,11 @@ impl PostgreSQLStorage {
     pub async fn save_subscan_account(&self, account: &SubscanAccount) -> anyhow::Result<String> {
         let parent = account.account_display.parent.as_ref();
         let merkle = account.account_display.merkle.as_ref();
+        let account_display = account
+            .account_display
+            .display
+            .as_ref()
+            .map(|d| d.replace('\0', ""));
         let result: (String,) = sqlx::query_as(
             r#"
             INSERT INTO ftd_subscan_account (address, display, account_index, account_display, account_identity, parent_address, parent_display, parent_sub_symbol, parent_identity, merkle_science_address_type, merkle_science_tag_type, merkle_science_tag_sub_type, merkle_science_tag_name)
@@ -87,7 +92,7 @@ impl PostgreSQLStorage {
             .bind(&account.address)
             .bind(&account.display)
             .bind(account.account_display.account_index.as_ref())
-            .bind(account.account_display.display.as_ref())
+            .bind(account_display)
             .bind(account.account_display.identity)
             .bind(parent.as_ref().map(|parent| &parent.address))
             .bind(parent.as_ref().map(|parent| &parent.display))

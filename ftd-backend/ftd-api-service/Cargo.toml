@@ -6,12 +6,11 @@ rust-version = "1.77.2"
 authors = ["kukabi <kutsal@helikon.io>"]
 
 [dependencies]
+actix-cors = "0.7"
 actix-web = "4.9"
 anyhow = { workspace = true }
 async-trait = { workspace = true }
-config = { workspace = true }
 ftd-config = { path = "../ftd-config" }
-ftd-logging = { path = "../ftd-logging" }
 ftd-metrics = { path = "../ftd-metrics" }
 ftd-persistence = { path = "../ftd-persistence" }
 ftd-service = { path = "../ftd-service" }

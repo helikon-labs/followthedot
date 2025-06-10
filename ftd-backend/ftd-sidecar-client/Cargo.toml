@@ -8,7 +8,6 @@ rust-version = "1.77.2"
 anyhow = { workspace = true }
 ftd-config = { path = "../ftd-config" }
 ftd-types = { path = "../ftd-types" }
-hex = { workspace = true }
 log = { workspace = true }
 reqwest = { workspace = true, features = ["blocking", "json", "gzip", "brotli"] }
 serde_json = { workspace = true }
