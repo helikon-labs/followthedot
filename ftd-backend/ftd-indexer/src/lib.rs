@@ -79,11 +79,7 @@ impl Service for Indexer {
                     }
                 }
                 if block_numbers.len() > 1 && block_numbers.len() == chunk_block_numbers.len() {
-                    log::info!(
-                        "Fetch blocks {}-{}.",
-                        range_start_block_number,
-                        range_end_block_number
-                    );
+                    log::info!("Fetch blocks {range_start_block_number}-{range_end_block_number}.");
                     let start = std::time::Instant::now();
                     let blocks = sidecar
                         .get_range_of_blocks(range_start_block_number, range_end_block_number)
@@ -104,7 +100,7 @@ impl Service for Indexer {
                         metrics::block_indexing_time_ms()
                             .observe(start.elapsed().as_millis() as f64);
                         metrics::indexed_finalized_block_number().set(block_number as i64);
-                        log::info!("Persisted block {}.", block_number);
+                        log::info!("Persisted block {block_number}.");
                     }
                 }
                 block_number = range_end_block_number + 1;
@@ -113,10 +109,7 @@ impl Service for Indexer {
                 return Ok(());
             }
             let delay_seconds = CONFIG.common.recovery_retry_seconds;
-            log::info!(
-                "Reached chain head. Check new head in {} seconds.",
-                delay_seconds
-            );
+            log::info!("Reached chain head. Check new head in {delay_seconds} seconds.");
             tokio::time::sleep(std::time::Duration::from_secs(delay_seconds)).await;
         }
     }

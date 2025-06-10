@@ -40,7 +40,7 @@ impl SubstrateClient {
             .await?;
         let chain: String = ws_client.request("system_chain", rpc_params!()).await?;
         let chain = Chain::from_str(chain.as_str())?;
-        log::info!("{} Substrate connection successful.", chain);
+        log::info!("{chain} Substrate connection successful.");
         Ok(SubstrateClient { chain, ws_client })
     }
 

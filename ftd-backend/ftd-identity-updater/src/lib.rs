@@ -22,7 +22,7 @@ impl IdentityUpdater {
         block_hash: &str,
         block_number: u64,
     ) -> anyhow::Result<()> {
-        log::info!("Get identity @ finalized block {}.", block_number);
+        log::info!("Get identity @ finalized block {block_number}.");
         let identities = substrate_client.get_identities(block_hash).await?;
         metrics::last_identity_list_fetch_timestamp_ms().set(chrono::Utc::now().timestamp_millis());
         log::info!("Got {} identities.", identities.len());

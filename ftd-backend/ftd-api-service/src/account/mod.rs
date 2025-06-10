@@ -207,11 +207,7 @@ pub(crate) async fn account_graph_service(
                     Some(subscan_account_search_result.data.account)
                 }
                 Err(error) => {
-                    log::error!(
-                        "Error while getting Subscan account {}: {:?}",
-                        address,
-                        error
-                    );
+                    log::error!("Error while getting Subscan account {address}: {error:?}");
                     fetched_subscan_account_count += 1;
                     None
                 }
