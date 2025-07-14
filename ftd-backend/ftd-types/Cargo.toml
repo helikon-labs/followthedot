@@ -11,7 +11,7 @@ hex = { workspace = true }
 pallet-identity = "40.1"
 parity-scale-codec = "3.7"
 pallet-balances = "41.1"
-frame-system = "40.1"
+frame-system = "41.0"
 serde = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 thiserror = { workspace = true }
