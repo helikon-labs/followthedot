@@ -47,7 +47,8 @@ export class EventBus implements IEventBus {
     }
 
     // prettier-ignore
-    public register(event: string, callback: Function): Registry { // eslint-disable-line @typescript-eslint/no-unsafe-function-type
+    // eslint-disable-line @typescript-eslint/no-unsafe-function-type
+    public register(event: string, callback: Function): Registry {
         const id = this.getNextId();
         if (!this.subscribers[event]) this.subscribers[event] = {};
 

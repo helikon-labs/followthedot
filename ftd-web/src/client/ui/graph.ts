@@ -148,7 +148,7 @@ function transformAccountLabel(d: any, scale: number): string {
 function getAccountStrokeWidth(account: Account): number {
     let balance = BigInt('0');
     if (account.balance) {
-        balance = account.balance.free;
+        balance = account.balance.free + account.balance.reserved;
     }
     return balanceStrokeScale(Number((balance / BALANCE_DENOMINATOR).valueOf()));
 }
@@ -156,7 +156,7 @@ function getAccountStrokeWidth(account: Account): number {
 function getAccountStrokeColor(account: Account): string {
     let balance = BigInt('0');
     if (account.balance) {
-        balance = account.balance.free;
+        balance = account.balance.free + account.balance.reserved;
     }
     return balanceColorScale(Number((balance / BALANCE_DENOMINATOR).valueOf()));
 }
@@ -164,7 +164,7 @@ function getAccountStrokeColor(account: Account): string {
 function getAccountStrokeOpacity(account: Account): number {
     let balance = BigInt('0');
     if (account.balance) {
-        balance = account.balance.free;
+        balance = account.balance.free + account.balance.reserved;
     }
     return balanceOpacityScale(Number((balance / BALANCE_DENOMINATOR).valueOf()));
 }
@@ -348,7 +348,7 @@ class Graph {
         const maxBalance = this.accounts.reduce((acc, account) => {
             let balance = BigInt('0');
             if (account.balance) {
-                balance = account.balance.free / BALANCE_DENOMINATOR;
+                balance = (account.balance.free + account.balance.reserved) / BALANCE_DENOMINATOR;
             }
             return acc > balance ? acc : balance;
         }, 0);
@@ -558,7 +558,7 @@ class Graph {
                         .text((account: Account) => {
                             let balance = BigInt('0');
                             if (account.balance) {
-                                balance = account.balance.free;
+                                balance = account.balance.free + account.balance.reserved;
                             }
                             return formatNumber(balance, Polkadot.DECIMAL_COUNT, 2, 'DOT');
                         })
