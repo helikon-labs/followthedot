@@ -27,7 +27,7 @@
         "d3": "^7.9.0",
         "express": "^4.21.1",
         "prettier": "3.3.3",
-        "ts-loader": "^9.5.1",
+        "ts-loader": "^9.5.4",
         "webpack-cli": "^6.0.1",
         "webpack-dev-server": "^5.2.1"
     }
