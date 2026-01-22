@@ -17,7 +17,7 @@ pub struct SubscanAccountListResult {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SubscanAccountList {
     pub count: u64,
-    pub list: Vec<SubscanAccount>,
+    pub list: Option<Vec<SubscanAccount>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

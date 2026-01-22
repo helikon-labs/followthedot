@@ -38,7 +38,7 @@ impl FromStr for Chain {
 
 impl Chain {
     /// SS58 encoding format for the chain.
-    fn get_ss58_address_format(&self) -> Ss58AddressFormat {
+    pub fn get_ss58_address_format(&self) -> Ss58AddressFormat {
         match self {
             Self::Kusama => Ss58AddressFormat::from(2u16),
             Self::Polkadot => Ss58AddressFormat::from(0u16),

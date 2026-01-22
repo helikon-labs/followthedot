@@ -27,7 +27,7 @@ impl PostgreSQLStorage {
         Ok(PostgreSQLStorage { connection_pool })
     }
 
-    pub async fn begin_tx(&self) -> anyhow::Result<Transaction<Postgres>> {
+    pub async fn begin_tx(&self) -> anyhow::Result<Transaction<'_, Postgres>> {
         Ok(self.connection_pool.begin().await?)
     }
 

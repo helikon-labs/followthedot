@@ -4,6 +4,7 @@ use ftd_substrate_client::SubstrateClient;
 use ftd_types::api::account::{Account, AccountGraph};
 use ftd_types::err::ServiceError;
 use ftd_types::substrate::account_id::AccountId;
+use ftd_types::substrate::chain::Chain;
 use rustc_hash::FxHashSet as HashSet;
 use serde::Deserialize;
 use std::str::FromStr;
@@ -124,6 +125,14 @@ pub(crate) async fn account_search_service(
     // search by address
     if (accounts.len() as u16) < limit {
         let limit = limit - (accounts.len() as u16);
+        // if full non-Polkadot address, then convert to Polkadot address
+        let query = if let Ok(account_id) = AccountId::from_ss58_check(query.as_str()) {
+            let polkadot = Chain::Polkadot;
+            let format = polkadot.get_ss58_address_format();
+            account_id.to_ss58_check_with_version(format.prefix())
+        } else {
+            query
+        };
         let addresses = state
             .relational_storage
             .search_addresses(query.as_str(), limit)

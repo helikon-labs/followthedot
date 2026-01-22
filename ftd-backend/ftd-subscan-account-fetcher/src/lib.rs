@@ -40,15 +40,20 @@ impl Service for SubscanAccountFetcher {
                     .get_account_list(page_index, PAGE_SIZE)
                     .await?;
                 if let Some(account_list) = page.data.as_ref() {
-                    log::info!(
-                        "There are {} records on page {}.",
-                        account_list.list.len(),
-                        page_index + 1
-                    );
-                    for account in account_list.list.iter() {
-                        storage.save_subscan_account(account).await?;
+                    if let Some(account_list) = account_list.list.as_ref() {
+                        log::info!(
+                            "There are {} records on page {}.",
+                            account_list.len(),
+                            page_index + 1
+                        );
+                        for account in account_list.iter() {
+                            storage.save_subscan_account(account).await?;
+                        }
+                        log::info!("Persisted {} records.", account_list.len());
+                    } else {
+                        log::info!("Account list returned null on page {}.", page_index + 1);
+                        break;
                     }
-                    log::info!("Persisted {} records.", account_list.list.len());
                 } else {
                     log::info!("No records found on page {}.", page_index + 1);
                     break;

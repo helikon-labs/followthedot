@@ -25,7 +25,7 @@ impl AccountId {
             .to_ss58check_with_version(Ss58AddressFormat::custom(prefix))
     }
 
-    fn from_ss58_check(address: &str) -> Result<Self, DecodeError> {
+    pub fn from_ss58_check(address: &str) -> Result<Self, DecodeError> {
         if let Ok(account_id) = sp_core::crypto::AccountId32::from_ss58check(address) {
             let account_id_bytes: [u8; 32] = account_id.into();
             Ok(Self(account_id_bytes))
