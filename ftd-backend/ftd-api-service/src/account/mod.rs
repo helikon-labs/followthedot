@@ -30,8 +30,10 @@ async fn set_account_balances(accounts: &mut [Account]) -> anyhow::Result<()> {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct AccountSearchParameters {
-    query: String,
+    sanitized_query: String,
+    original_query: String,
 }
 
 #[get("/account")]
@@ -39,13 +41,13 @@ pub(crate) async fn account_search_service(
     query: web::Query<AccountSearchParameters>,
     state: web::Data<ServiceState>,
 ) -> ResultResponse {
-    let query = query.query.trim().to_string();
-    if query.is_empty() {
+    let sanitized_query = query.sanitized_query.trim().to_string();
+    if sanitized_query.is_empty() {
         return Ok(
             HttpResponse::BadRequest().json(ServiceError::from("Query should not be empty."))
         );
     }
-    let limit = if query.len() < 5 {
+    let limit = if sanitized_query.len() < 5 {
         CONFIG.api.account_search_limit / 2
     } else {
         CONFIG.api.account_search_limit
@@ -53,7 +55,7 @@ pub(crate) async fn account_search_service(
     // search by display
     let mut accounts: Vec<Account> = state
         .relational_storage
-        .search_identities(query.as_str(), limit)
+        .search_identities(sanitized_query.as_str(), limit)
         .await?
         .iter()
         .map(|identity| Account {
@@ -98,7 +100,7 @@ pub(crate) async fn account_search_service(
         let limit = limit - (accounts.len() as u16);
         let sub_identities = state
             .relational_storage
-            .search_sub_identities(query.as_str(), limit)
+            .search_sub_identities(sanitized_query.as_str(), limit)
             .await?;
         // get super identities
         for sub_identity in sub_identities.iter() {
@@ -126,12 +128,13 @@ pub(crate) async fn account_search_service(
     if (accounts.len() as u16) < limit {
         let limit = limit - (accounts.len() as u16);
         // if full non-Polkadot address, then convert to Polkadot address
-        let query = if let Ok(account_id) = AccountId::from_ss58_check(query.as_str()) {
+        let original_query = query.original_query.as_str();
+        let query = if let Ok(account_id) = AccountId::from_ss58_check(original_query) {
             let polkadot = Chain::Polkadot;
             let format = polkadot.get_ss58_address_format();
             account_id.to_ss58_check_with_version(format.prefix())
         } else {
-            query
+            sanitized_query
         };
         let addresses = state
             .relational_storage

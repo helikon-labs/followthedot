@@ -20,15 +20,16 @@ class API {
         return value;
     }
 
-    async searchAccount(query: string): Promise<Account[]> {
+    async searchAccount(sanitizedQuery: string, originalQuery: string): Promise<Account[]> {
+        const params = new URLSearchParams({
+            sanitizedQuery,
+            originalQuery,
+        });
         return await (
-            await fetch(
-                this.getBasePath() + '/account?' + new URLSearchParams({ query: query }).toString(),
-                {
-                    method: 'GET',
-                    headers: {},
-                },
-            )
+            await fetch(this.getBasePath() + '/account?' + params.toString(), {
+                method: 'GET',
+                headers: {},
+            })
         ).json();
     }
 

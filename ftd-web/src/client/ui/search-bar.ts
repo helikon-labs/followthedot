@@ -66,7 +66,7 @@ class SearchBar {
         }
         show(this.ui.animation);
         try {
-            this.accounts = await this.api.searchAccount(query);
+            this.accounts = await this.api.searchAccount(query, this.ui.input.value);
             hide(this.ui.animation);
             if (this.accounts.length > 0) {
                 this.sortAccounts();
