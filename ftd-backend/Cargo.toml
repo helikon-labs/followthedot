@@ -19,8 +19,8 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.4"
-rust-version = "1.77.2"
+version = "0.1.5"
+rust-version = "1.91.1"
 edition = "2021"
 repository = "https://github.com/helikon-labs/followthedot"
 authors = ["kukabi <kutsal@helikon.io>"]
