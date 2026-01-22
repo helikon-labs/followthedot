@@ -13,22 +13,22 @@
     "author": "kukabi @ Helikon Labs",
     "license": "GPL 3",
     "devDependencies": {
-        "@polkadot/api": "^16.1.2",
-        "@polkadot/api-derive": "^16.1.2",
-        "@polkadot/keyring": "^13.5.1",
-        "@polkadot/types": "^16.1.2",
-        "@polkadot/ui-shared": "^3.14.1",
+        "@polkadot/api": "^16.5.4",
+        "@polkadot/api-derive": "^16.5.4",
+        "@polkadot/keyring": "^14.0.1",
+        "@polkadot/types": "^16.5.4",
+        "@polkadot/ui-shared": "^3.16.4",
         "@tweenjs/tween.js": "^25.0.0",
         "@types/async-lock": "^1.4.2",
         "@types/d3": "^7.4.3",
-        "@types/express": "^5.0.0",
-        "@typescript-eslint/eslint-plugin": "^7.17.1",
+        "@types/express": "^5.0.6",
+        "@typescript-eslint/eslint-plugin": "^8.42.0",
         "async-lock": "^1.4.1",
         "d3": "^7.9.0",
-        "express": "^4.21.1",
-        "prettier": "3.3.3",
-        "ts-loader": "^9.5.1",
+        "express": "^5.2.1",
+        "prettier": "3.8.1",
+        "ts-loader": "^9.5.4",
         "webpack-cli": "^6.0.1",
-        "webpack-dev-server": "^5.2.1"
+        "webpack-dev-server": "^5.2.2"
     }
 }
