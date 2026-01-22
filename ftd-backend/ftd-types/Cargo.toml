@@ -1,17 +1,20 @@
 [package]
 name = "ftd-types"
-version = "0.1.4"
-edition = "2021"
-rust-version = "1.77.2"
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
 frame-support = { workspace = true }
 hex = { workspace = true }
-pallet-identity = "40.1"
-parity-scale-codec = "3.7"
-pallet-balances = "41.1"
-frame-system = "40.1"
-serde = { workspace = true, features = ["derive"] }
+pallet-identity = { workspace = true }
+parity-scale-codec = { workspace = true }
+pallet-balances = { workspace = true }
+frame-system = { workspace = true }
+serde = { workspace = true }
 sp-core = { workspace = true }
 thiserror = { workspace = true }

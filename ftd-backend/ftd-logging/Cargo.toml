@@ -1,9 +1,11 @@
 [package]
 name = "ftd-logging"
-version = "0.1.4"
-edition = "2021"
-rust-version = "1.77.2"
-authors = ["kukabi <kutsal@helikon.io>"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 env_logger = { workspace = true }

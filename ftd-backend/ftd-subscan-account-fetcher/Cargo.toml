@@ -1,8 +1,11 @@
 [package]
 name = "ftd-subscan-account-fetcher"
-version = "0.1.4"
-edition = "2021"
-rust-version = "1.77.2"
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
@@ -15,4 +18,4 @@ ftd-subscan-client = { path = "../ftd-subscan-client" }
 lazy_static = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
-tokio = { workspace = true, features = ["full"] }
+tokio = { workspace = true }

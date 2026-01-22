@@ -1,8 +1,11 @@
 [package]
 name = "ftd-service"
-version = "0.1.4"
-edition = "2021"
-rust-version = "1.77.2"
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 actix-web = { workspace = true }
@@ -14,4 +17,4 @@ ftd-config = { path = "../ftd-config" }
 ftd-logging = { path = "../ftd-logging" }
 ftd-metrics = { path = "../ftd-metrics" }
 ftd-types = { path = "../ftd-types" }
-tokio = { workspace = true, features = ["full"] }
+tokio = { workspace = true }

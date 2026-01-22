@@ -1,13 +1,15 @@
 [package]
 name = "ftd-api-service"
-version = "0.1.4"
-edition = "2021"
-rust-version = "1.77.2"
-authors = ["kukabi <kutsal@helikon.io>"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
-actix-cors = "0.7"
-actix-web = "4.9"
+actix-cors = { workspace = true }
+actix-web = { workspace = true }
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 ftd-config = { path = "../ftd-config" }
@@ -17,10 +19,10 @@ ftd-service = { path = "../ftd-service" }
 ftd-subscan-client = { path = "../ftd-subscan-client" }
 ftd-substrate-client = { path = "../ftd-substrate-client" }
 ftd-types = { path = "../ftd-types" }
-futures-util = "0.3"
+futures-util = { workspace = true }
 lazy_static = { workspace = true }
 log = { workspace = true }
 once_cell = { workspace = true }
 rustc-hash = { workspace = true }
-serde = { version = "1", features = ["derive"] }
-tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+tokio = { workspace = true }
